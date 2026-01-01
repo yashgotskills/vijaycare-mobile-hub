@@ -1,0 +1,511 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { 
+  ArrowLeft, Wrench, Smartphone, Monitor, Headphones, 
+  Battery, Droplets, Cpu, MapPin, Calendar, Clock, 
+  MessageCircle, CheckCircle, User, Phone
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
+import ShopHeader from "@/components/shop/ShopHeader";
+import Footer from "@/components/Footer";
+
+const deviceTypes = [
+  { id: "smartphone", name: "Smartphone", icon: Smartphone },
+  { id: "tablet", name: "Tablet", icon: Monitor },
+  { id: "earbuds", name: "Earbuds/Headphones", icon: Headphones },
+];
+
+const repairTypes = [
+  { id: "screen", name: "Screen Repair", icon: Monitor, price: "₹999+" },
+  { id: "battery", name: "Battery Replacement", icon: Battery, price: "₹599+" },
+  { id: "water", name: "Water Damage", icon: Droplets, price: "₹1499+" },
+  { id: "software", name: "Software Issues", icon: Cpu, price: "₹299+" },
+  { id: "other", name: "Other Issue", icon: Wrench, price: "Contact" },
+];
+
+const timeSlots = [
+  "9:00 AM - 11:00 AM",
+  "11:00 AM - 1:00 PM", 
+  "2:00 PM - 4:00 PM",
+  "4:00 PM - 6:00 PM",
+];
+
+const RepairRequestPage = () => {
+  const navigate = useNavigate();
+  const [step, setStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const [formData, setFormData] = useState({
+    // Step 1 - Device Info
+    deviceType: "",
+    brand: "",
+    model: "",
+    repairType: "",
+    issueDescription: "",
+    
+    // Step 2 - Contact & Schedule
+    name: "",
+    phone: "",
+    address: "",
+    preferredDate: "",
+    preferredTime: "",
+  });
+
+  const updateFormData = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const validateStep1 = () => {
+    if (!formData.deviceType) {
+      toast.error("Please select a device type");
+      return false;
+    }
+    if (!formData.brand.trim()) {
+      toast.error("Please enter the brand name");
+      return false;
+    }
+    if (!formData.repairType) {
+      toast.error("Please select a repair type");
+      return false;
+    }
+    return true;
+  };
+
+  const validateStep2 = () => {
+    if (!formData.name.trim()) {
+      toast.error("Please enter your name");
+      return false;
+    }
+    if (!formData.phone.trim() || formData.phone.length < 10) {
+      toast.error("Please enter a valid phone number");
+      return false;
+    }
+    if (!formData.address.trim()) {
+      toast.error("Please enter your address");
+      return false;
+    }
+    if (!formData.preferredDate) {
+      toast.error("Please select a preferred date");
+      return false;
+    }
+    if (!formData.preferredTime) {
+      toast.error("Please select a preferred time slot");
+      return false;
+    }
+    return true;
+  };
+
+  const handleNextStep = () => {
+    if (step === 1 && validateStep1()) {
+      setStep(2);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!validateStep2()) return;
+
+    setIsSubmitting(true);
+
+    // Build WhatsApp message
+    const selectedRepair = repairTypes.find(r => r.id === formData.repairType);
+    const selectedDevice = deviceTypes.find(d => d.id === formData.deviceType);
+    
+    const message = `🔧 *NEW REPAIR REQUEST*
+
+📱 *Device Details:*
+• Type: ${selectedDevice?.name || formData.deviceType}
+• Brand: ${formData.brand}
+• Model: ${formData.model || 'Not specified'}
+• Issue: ${selectedRepair?.name || formData.repairType}
+• Description: ${formData.issueDescription || 'Not provided'}
+
+👤 *Customer Details:*
+• Name: ${formData.name}
+• Phone: ${formData.phone}
+• Address: ${formData.address}
+
+📅 *Preferred Visit:*
+• Date: ${formData.preferredDate}
+• Time: ${formData.preferredTime}
+
+---
+Sent from VijayCare App`;
+
+    // Encode message for WhatsApp URL
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappNumber = "919876543210"; // Replace with actual business number
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
+
+    // Small delay for UX
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Open WhatsApp
+    window.open(whatsappUrl, "_blank");
+    
+    toast.success("Opening WhatsApp to send your request...");
+    setIsSubmitting(false);
+    setStep(3); // Success step
+  };
+
+  const getTodayDate = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+
+  const getMaxDate = () => {
+    const maxDate = new Date();
+    maxDate.setDate(maxDate.getDate() + 14);
+    return maxDate.toISOString().split('T')[0];
+  };
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
+      <ShopHeader />
+      
+      <main className="flex-1 container mx-auto px-4 py-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          {/* Header */}
+          <div className="flex items-center gap-4 mb-8">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/shop")}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-heading font-bold text-foreground">
+                Request Repair Service
+              </h1>
+              <p className="text-muted-foreground">Book a technician visit to your location</p>
+            </div>
+          </div>
+
+          {/* Progress Steps */}
+          <div className="flex items-center justify-center gap-4 mb-10">
+            {[1, 2, 3].map((s) => (
+              <div key={s} className="flex items-center">
+                <div 
+                  className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-colors ${
+                    step >= s 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'bg-muted text-muted-foreground'
+                  }`}
+                >
+                  {step > s ? <CheckCircle className="w-5 h-5" /> : s}
+                </div>
+                {s < 3 && (
+                  <div className={`w-16 md:w-24 h-1 mx-2 rounded ${step > s ? 'bg-primary' : 'bg-muted'}`} />
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Step 1: Device & Issue */}
+          {step === 1 && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="max-w-2xl mx-auto space-y-8"
+            >
+              {/* Device Type */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Smartphone className="w-5 h-5 text-primary" />
+                    What device needs repair?
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-3 gap-3">
+                    {deviceTypes.map((device) => (
+                      <button
+                        key={device.id}
+                        onClick={() => updateFormData("deviceType", device.id)}
+                        className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
+                          formData.deviceType === device.id
+                            ? 'border-primary bg-primary/5'
+                            : 'border-border hover:border-primary/50'
+                        }`}
+                      >
+                        <device.icon className={`w-8 h-8 ${formData.deviceType === device.id ? 'text-primary' : 'text-muted-foreground'}`} />
+                        <span className="text-sm font-medium">{device.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Brand & Model */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Device Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="brand">Brand *</Label>
+                      <Input
+                        id="brand"
+                        placeholder="e.g., Samsung, Apple, OnePlus"
+                        value={formData.brand}
+                        onChange={(e) => updateFormData("brand", e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="model">Model (Optional)</Label>
+                      <Input
+                        id="model"
+                        placeholder="e.g., Galaxy S23, iPhone 15"
+                        value={formData.model}
+                        onChange={(e) => updateFormData("model", e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Repair Type */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Wrench className="w-5 h-5 text-primary" />
+                    What issue are you facing?
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {repairTypes.map((repair) => (
+                      <button
+                        key={repair.id}
+                        onClick={() => updateFormData("repairType", repair.id)}
+                        className={`p-4 rounded-xl border-2 transition-all flex items-center gap-3 text-left ${
+                          formData.repairType === repair.id
+                            ? 'border-primary bg-primary/5'
+                            : 'border-border hover:border-primary/50'
+                        }`}
+                      >
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                          formData.repairType === repair.id ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                        }`}>
+                          <repair.icon className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium">{repair.name}</div>
+                          <div className="text-sm text-muted-foreground">{repair.price}</div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Issue Description */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Describe the issue (Optional)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Textarea
+                    placeholder="Provide more details about the problem you're experiencing..."
+                    value={formData.issueDescription}
+                    onChange={(e) => updateFormData("issueDescription", e.target.value)}
+                    rows={4}
+                  />
+                </CardContent>
+              </Card>
+
+              <Button onClick={handleNextStep} size="lg" className="w-full">
+                Continue to Schedule
+              </Button>
+            </motion.div>
+          )}
+
+          {/* Step 2: Contact & Schedule */}
+          {step === 2 && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="max-w-2xl mx-auto space-y-8"
+            >
+              {/* Contact Info */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <User className="w-5 h-5 text-primary" />
+                    Your Contact Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="name">Full Name *</Label>
+                    <Input
+                      id="name"
+                      placeholder="Enter your full name"
+                      value={formData.name}
+                      onChange={(e) => updateFormData("name", e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="phone">Phone Number *</Label>
+                    <div className="relative mt-1">
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="10-digit mobile number"
+                        value={formData.phone}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, "").slice(0, 10);
+                          updateFormData("phone", value);
+                        }}
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Address */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-primary" />
+                    Visit Address
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Textarea
+                    placeholder="Enter complete address where technician should visit"
+                    value={formData.address}
+                    onChange={(e) => updateFormData("address", e.target.value)}
+                    rows={3}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Schedule */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Calendar className="w-5 h-5 text-primary" />
+                    Preferred Visit Time
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="date">Select Date *</Label>
+                    <Input
+                      id="date"
+                      type="date"
+                      min={getTodayDate()}
+                      max={getMaxDate()}
+                      value={formData.preferredDate}
+                      onChange={(e) => updateFormData("preferredDate", e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Select Time Slot *</Label>
+                    <RadioGroup 
+                      value={formData.preferredTime} 
+                      onValueChange={(value) => updateFormData("preferredTime", value)}
+                      className="grid grid-cols-2 gap-3 mt-2"
+                    >
+                      {timeSlots.map((slot) => (
+                        <div key={slot}>
+                          <RadioGroupItem value={slot} id={slot} className="peer sr-only" />
+                          <Label
+                            htmlFor={slot}
+                            className={`flex items-center justify-center gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                              formData.preferredTime === slot
+                                ? 'border-primary bg-primary/5'
+                                : 'border-border hover:border-primary/50'
+                            }`}
+                          >
+                            <Clock className="w-4 h-4" />
+                            <span className="text-sm">{slot}</span>
+                          </Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="flex gap-4">
+                <Button variant="outline" onClick={() => setStep(1)} className="flex-1">
+                  Back
+                </Button>
+                <Button 
+                  onClick={handleSubmit} 
+                  disabled={isSubmitting}
+                  className="flex-1 gap-2"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <MessageCircle className="w-4 h-4" />
+                      Send via WhatsApp
+                    </>
+                  )}
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Step 3: Success */}
+          {step === 3 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="max-w-md mx-auto text-center py-12"
+            >
+              <div className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-6">
+                <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
+              </div>
+              <h2 className="text-2xl font-heading font-bold text-foreground mb-3">
+                Request Sent!
+              </h2>
+              <p className="text-muted-foreground mb-8">
+                Your repair request has been sent via WhatsApp. Our team will contact you shortly to confirm the visit.
+              </p>
+              <div className="space-y-3">
+                <Button onClick={() => navigate("/shop")} className="w-full">
+                  Back to Shop
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => { setStep(1); setFormData({
+                    deviceType: "", brand: "", model: "", repairType: "", issueDescription: "",
+                    name: "", phone: "", address: "", preferredDate: "", preferredTime: "",
+                  }); }}
+                  className="w-full"
+                >
+                  Submit Another Request
+                </Button>
+              </div>
+            </motion.div>
+          )}
+        </motion.div>
+      </main>
+
+      <Footer />
+    </div>
+  );
+};
+
+export default RepairRequestPage;
