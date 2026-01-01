@@ -35,7 +35,7 @@ const BannerCarousel = () => {
 
   return (
     <div className="relative w-full overflow-hidden rounded-2xl bg-muted">
-      <div className="relative aspect-[3/1] md:aspect-[4/1]">
+      <div className="relative aspect-[2.5/1] md:aspect-[3.3/1]">
         <AnimatePresence mode="wait">
           <motion.img
             key={currentIndex}

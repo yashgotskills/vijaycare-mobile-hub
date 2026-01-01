@@ -21,10 +21,15 @@ const ShopHeader = () => {
         <div className="flex items-center justify-between h-16 gap-4">
           {/* Logo */}
           <Link to="/shop" className="flex items-center gap-2 flex-shrink-0">
-            <img src={logo} alt="VijayaCare" className="h-10 w-10" />
-            <span className="font-heading font-bold text-xl text-foreground hidden sm:block">
-              VijayaCare
-            </span>
+            <img src={logo} alt="VijayCare" className="h-10 w-10" />
+            <div className="hidden sm:flex flex-col">
+              <span className="font-heading font-bold text-xl text-foreground leading-tight">
+                VijayCare
+              </span>
+              <span className="text-xs text-muted-foreground leading-tight">
+                Where Mobile Meet Care
+              </span>
+            </div>
           </Link>
 
           {/* Search Bar - Desktop */}
