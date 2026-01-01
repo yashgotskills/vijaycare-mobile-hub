@@ -24,19 +24,19 @@ const brands = [
   },
   {
     name: "Oppo",
-    // Clearbit often fails for this domain; use brand-colored Simple Icons CDN.
-    logo: "https://cdn.simpleicons.org/oppo",
-    fallback: "https://cdn.simpleicons.org/oppo",
+    // Use a brand-colored icon CDN (more reliable than Clearbit for some domains).
+    logo: "https://cdn.simpleicons.org/oppo/05BA5A",
+    fallback: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/oppo.svg",
   },
   {
     name: "Vivo",
-    logo: "https://cdn.simpleicons.org/vivo",
-    fallback: "https://cdn.simpleicons.org/vivo",
+    logo: "https://cdn.simpleicons.org/vivo/415FFF",
+    fallback: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/vivo.svg",
   },
   {
     name: "Realme",
-    logo: "https://cdn.simpleicons.org/realme",
-    fallback: "https://cdn.simpleicons.org/realme",
+    logo: "https://cdn.simpleicons.org/realme/FFCA13",
+    fallback: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/realme.svg",
   },
   {
     name: "Google",
@@ -45,12 +45,14 @@ const brands = [
   },
   {
     name: "Nothing",
-    logo: "https://cdn.simpleicons.org/nothing",
-    fallback: "https://cdn.simpleicons.org/nothing",
+    // Official brand color is black; we invert in dark mode so it stays visible.
+    logo: "https://cdn.simpleicons.org/nothing/000000",
+    fallback: "https://logo.clearbit.com/nothing.tech?size=128",
   },
   {
     name: "Motorola",
-    logo: "https://logo.clearbit.com/motorola.com?size=128",
+    // Clearbit can be flaky; use icon CDN.
+    logo: "https://cdn.simpleicons.org/motorola/2D78D2",
     fallback: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/motorola.svg",
   },
 ] as const;
@@ -58,13 +60,16 @@ const brands = [
 type Brand = (typeof brands)[number];
 
 function BrandTile({ brand }: { brand: Brand }) {
+  const extraImgClass = brand.name === "Nothing" ? "dark:invert" : "";
+
   return (
     <div className="flex-shrink-0 flex flex-col items-center justify-center h-16 w-36 gap-2">
       <img
         src={brand.logo}
         alt={`${brand.name} brand logo`}
-        className="max-h-10 max-w-full object-contain"
+        className={`max-h-10 max-w-full object-contain ${extraImgClass}`}
         loading="lazy"
+        referrerPolicy="no-referrer"
         onError={(e) => {
           const img = e.currentTarget;
           // prevent infinite loop
