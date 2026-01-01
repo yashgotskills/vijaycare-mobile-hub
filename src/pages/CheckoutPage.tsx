@@ -159,6 +159,16 @@ const CheckoutPage = () => {
       });
 
       if (error) throw error;
+
+      // Try to send push notification (non-blocking)
+      supabase.functions.invoke("send-push-notification", {
+        body: {
+          user_phone: userPhone,
+          title: "Order Confirmed! 🎉",
+          body: `Your order of ₹${total.toLocaleString()} has been placed successfully.`,
+          data: { type: "order_confirmed" }
+        }
+      }).catch(console.error);
       
       clearCart();
       toast.success("Order placed successfully!");

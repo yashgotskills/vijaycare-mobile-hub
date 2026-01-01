@@ -173,6 +173,16 @@ Sent from VijayCare App`;
       
       // Open WhatsApp
       window.open(whatsappUrl, "_blank");
+
+      // Try to send push notification (non-blocking)
+      supabase.functions.invoke("send-push-notification", {
+        body: {
+          user_phone: userPhone,
+          title: "Repair Request Received 🔧",
+          body: `Your ${formData.brand} repair request has been submitted. We'll contact you soon!`,
+          data: { type: "repair_submitted" }
+        }
+      }).catch(console.error);
       
       toast.success("Request saved & opening WhatsApp...");
       setStep(3); // Success step
