@@ -4,8 +4,12 @@ import ShopHeader from "@/components/shop/ShopHeader";
 import CouponBanner from "@/components/shop/CouponBanner";
 import BannerCarousel from "@/components/shop/BannerCarousel";
 import BrandMarquee from "@/components/shop/BrandMarquee";
-import IPhoneCases from "@/components/shop/IPhoneCases";
-import AccessoriesSection from "@/components/shop/AccessoriesSection";
+import CategoryGrid from "@/components/shop/CategoryGrid";
+import TrustBadges from "@/components/shop/TrustBadges";
+import FlashSale from "@/components/shop/FlashSale";
+import FeaturedProducts from "@/components/shop/FeaturedProducts";
+import BestSellers from "@/components/shop/BestSellers";
+import NewArrivals from "@/components/shop/NewArrivals";
 import RepairServiceBanner from "@/components/shop/RepairServiceBanner";
 import Footer from "@/components/Footer";
 
@@ -30,17 +34,29 @@ const ShopPage = () => {
           <BannerCarousel />
         </section>
 
+        {/* Trust Badges */}
+        <TrustBadges />
+
+        {/* Category Grid */}
+        <CategoryGrid />
+
         {/* Brand Marquee */}
         <BrandMarquee />
 
-        {/* iPhone Cases */}
-        <IPhoneCases />
+        {/* Flash Sale */}
+        <FlashSale />
+
+        {/* Featured Products */}
+        <FeaturedProducts />
 
         {/* Repair Service Banner */}
         <RepairServiceBanner />
 
-        {/* Accessories */}
-        <AccessoriesSection />
+        {/* Best Sellers */}
+        <BestSellers />
+
+        {/* New Arrivals */}
+        <NewArrivals />
       </main>
 
       <Footer />
