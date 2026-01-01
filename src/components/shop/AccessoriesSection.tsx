@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
-import { Headphones, Music2, Zap, Battery, Cable, Speaker, ShoppingCart } from "lucide-react";
+import { Headphones, Music2, Zap, Battery, Cable, Speaker, ShoppingCart, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
+import { useWishlist } from "@/contexts/WishlistContext";
 
 const accessories = [
   {
@@ -62,16 +63,33 @@ const accessories = [
 
 const AccessoriesSection = () => {
   const { addToCart } = useCart();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
 
   const handleAddToCart = (item: typeof accessories[0]) => {
     addToCart({
-      id: item.id + 100, // Offset to avoid ID conflicts with iPhone cases
+      id: item.id + 100,
       name: item.name,
       price: item.price,
       originalPrice: item.originalPrice,
       image: item.image,
       category: item.category,
     });
+  };
+
+  const handleToggleWishlist = (item: typeof accessories[0]) => {
+    const itemId = item.id + 100;
+    if (isInWishlist(itemId)) {
+      removeFromWishlist(itemId);
+    } else {
+      addToWishlist({
+        id: itemId,
+        name: item.name,
+        price: item.price,
+        originalPrice: item.originalPrice,
+        image: item.image,
+        category: item.category,
+      });
+    }
   };
 
   return (
@@ -110,6 +128,16 @@ const AccessoriesSection = () => {
                 <div className="absolute top-2 left-2 bg-accent text-accent-foreground text-xs font-bold px-2 py-1 rounded">
                   {Math.round((1 - item.price / item.originalPrice) * 100)}% OFF
                 </div>
+                <button 
+                  className={`absolute top-2 right-2 p-1.5 rounded-full transition-all ${
+                    isInWishlist(item.id + 100) 
+                      ? 'bg-red-500 text-white' 
+                      : 'bg-background/80 opacity-0 group-hover:opacity-100 hover:bg-background'
+                  }`}
+                  onClick={(e) => { e.stopPropagation(); handleToggleWishlist(item); }}
+                >
+                  <Heart className={`h-4 w-4 ${isInWishlist(item.id + 100) ? 'fill-current' : ''}`} />
+                </button>
               </div>
               
               <div className="flex items-center gap-1.5 mb-1">
