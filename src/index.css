@@ -122,15 +122,23 @@
 }
 
 /* Seamless marquee animation */
-@keyframes marquee-scroll {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
+.marquee-container {
+  display: flex;
+  overflow: hidden;
+  width: 100%;
 }
 
-.marquee-track {
-  animation: marquee-scroll var(--marquee-duration, 20s) linear infinite;
+.marquee-content {
+  display: flex;
+  gap: 2rem;
+  animation: scroll-left 25s linear infinite;
+}
+
+@keyframes scroll-left {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }
