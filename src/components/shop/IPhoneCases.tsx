@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { ShoppingCart, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
+import { useWishlist } from "@/contexts/WishlistContext";
 
 const iphoneCases = [
   {
@@ -56,6 +57,7 @@ const iphoneCases = [
 
 const IPhoneCases = () => {
   const { addToCart } = useCart();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
 
   const handleAddToCart = (product: typeof iphoneCases[0]) => {
     addToCart({
@@ -66,6 +68,21 @@ const IPhoneCases = () => {
       image: product.image,
       category: "iPhone Cases",
     });
+  };
+
+  const handleToggleWishlist = (product: typeof iphoneCases[0]) => {
+    if (isInWishlist(product.id)) {
+      removeFromWishlist(product.id);
+    } else {
+      addToWishlist({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        originalPrice: product.originalPrice,
+        image: product.image,
+        category: "iPhone Cases",
+      });
+    }
   };
 
   return (
@@ -103,8 +120,15 @@ const IPhoneCases = () => {
                 <span className="absolute top-2 left-2 bg-accent text-accent-foreground text-xs font-bold px-2 py-1 rounded">
                   {product.discount}
                 </span>
-                <button className="absolute top-2 right-2 bg-background/80 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background">
-                  <Heart className="h-4 w-4 text-foreground" />
+                <button 
+                  className={`absolute top-2 right-2 p-1.5 rounded-full transition-all ${
+                    isInWishlist(product.id) 
+                      ? 'bg-red-500 text-white opacity-100' 
+                      : 'bg-background/80 opacity-0 group-hover:opacity-100 hover:bg-background'
+                  }`}
+                  onClick={() => handleToggleWishlist(product)}
+                >
+                  <Heart className={`h-4 w-4 ${isInWishlist(product.id) ? 'fill-current' : ''}`} />
                 </button>
               </div>
 
