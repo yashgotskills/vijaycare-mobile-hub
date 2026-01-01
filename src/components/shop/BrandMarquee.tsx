@@ -1,21 +1,21 @@
 import { motion } from "framer-motion";
 
 const brands = [
-  { name: "Apple", logo: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/apple.svg" },
-  { name: "Samsung", logo: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/samsung.svg" },
-  { name: "OnePlus", logo: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/oneplus.svg" },
-  { name: "Xiaomi", logo: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/xiaomi.svg" },
-  { name: "Oppo", logo: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/oppo.svg" },
-  { name: "Vivo", logo: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/vivo.svg" },
-  { name: "Realme", logo: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/realme.svg" },
-  { name: "Google", logo: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/google.svg" },
-  { name: "Nothing", logo: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/nothing.svg" },
-  { name: "Motorola", logo: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/motorola.svg" },
+  { name: "Apple", logo: "https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg", color: "#555555" },
+  { name: "Samsung", logo: "https://upload.wikimedia.org/wikipedia/commons/2/24/Samsung_Logo.svg", color: "#1428a0" },
+  { name: "OnePlus", logo: "https://upload.wikimedia.org/wikipedia/commons/9/9e/OnePlus_logo.svg", color: "#f50514" },
+  { name: "Xiaomi", logo: "https://upload.wikimedia.org/wikipedia/commons/a/ae/Xiaomi_logo_%282021-%29.svg", color: "#ff6900" },
+  { name: "Oppo", logo: "https://upload.wikimedia.org/wikipedia/commons/0/0a/OPPO_LOGO_2019.svg", color: "#1a9f4a" },
+  { name: "Vivo", logo: "https://upload.wikimedia.org/wikipedia/commons/1/10/Vivo_logo_2019.svg", color: "#415fff" },
+  { name: "Realme", logo: "https://upload.wikimedia.org/wikipedia/commons/9/91/Realme_logo.svg", color: "#f5c900" },
+  { name: "Google", logo: "https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg", color: "#4285f4" },
+  { name: "Nothing", logo: "https://upload.wikimedia.org/wikipedia/commons/c/c5/Nothing_logo.svg", color: "#000000" },
+  { name: "Motorola", logo: "https://upload.wikimedia.org/wikipedia/commons/4/45/Motorola-logo.svg", color: "#5c92fa" },
 ];
 
 const BrandMarquee = () => {
   return (
-    <div className="overflow-hidden bg-card/50 py-6 border-y border-border/30">
+    <div className="overflow-hidden bg-card/50 py-8 border-y border-border/30">
       <div className="relative">
         <motion.div
           animate={{ x: [0, -1920] }}
@@ -33,42 +33,45 @@ const BrandMarquee = () => {
           {brands.map((brand, index) => (
             <div
               key={`first-${index}`}
-              className="flex-shrink-0 flex items-center justify-center h-12 w-32"
+              className="flex-shrink-0 flex flex-col items-center justify-center h-16 w-36 gap-2"
             >
               <img
                 src={brand.logo}
                 alt={brand.name}
-                className="max-h-8 max-w-full object-contain dark:invert"
+                className="max-h-10 max-w-full object-contain"
                 loading="lazy"
               />
+              <span className="text-xs font-medium text-muted-foreground">{brand.name}</span>
             </div>
           ))}
           {/* Duplicate for seamless loop */}
           {brands.map((brand, index) => (
             <div
               key={`second-${index}`}
-              className="flex-shrink-0 flex items-center justify-center h-12 w-32"
+              className="flex-shrink-0 flex flex-col items-center justify-center h-16 w-36 gap-2"
             >
               <img
                 src={brand.logo}
                 alt={brand.name}
-                className="max-h-8 max-w-full object-contain dark:invert"
+                className="max-h-10 max-w-full object-contain"
                 loading="lazy"
               />
+              <span className="text-xs font-medium text-muted-foreground">{brand.name}</span>
             </div>
           ))}
           {/* Third set for extra smoothness */}
           {brands.map((brand, index) => (
             <div
               key={`third-${index}`}
-              className="flex-shrink-0 flex items-center justify-center h-12 w-32"
+              className="flex-shrink-0 flex flex-col items-center justify-center h-16 w-36 gap-2"
             >
               <img
                 src={brand.logo}
                 alt={brand.name}
-                className="max-h-8 max-w-full object-contain dark:invert"
+                className="max-h-10 max-w-full object-contain"
                 loading="lazy"
               />
+              <span className="text-xs font-medium text-muted-foreground">{brand.name}</span>
             </div>
           ))}
         </motion.div>
