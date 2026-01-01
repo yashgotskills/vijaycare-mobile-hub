@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { useCart } from "@/contexts/CartContext";
 import ShopHeader from "@/components/shop/ShopHeader";
 import Footer from "@/components/Footer";
 
@@ -29,6 +30,17 @@ const mockWishlist = [
 const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState("orders");
   const userPhone = localStorage.getItem("vijaycare_user") || "+91 9876543210";
+  const { addToCart } = useCart();
+
+  const handleAddToCart = (item: typeof mockWishlist[0]) => {
+    addToCart({
+      id: item.id + 200, // Offset to avoid ID conflicts
+      name: item.name,
+      price: item.price,
+      originalPrice: item.price,
+      image: item.image,
+    });
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -210,7 +222,7 @@ const ProfilePage = () => {
                           <h3 className="font-medium text-foreground line-clamp-2 mb-2">{item.name}</h3>
                           <div className="flex items-center justify-between">
                             <span className="font-bold text-foreground">₹{item.price}</span>
-                            <Button size="sm">Add to Cart</Button>
+                            <Button size="sm" onClick={() => handleAddToCart(item)}>Add to Cart</Button>
                           </div>
                         </CardContent>
                       </Card>

@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { ShoppingCart, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useCart } from "@/contexts/CartContext";
 
 const iphoneCases = [
   {
@@ -54,6 +55,19 @@ const iphoneCases = [
 ];
 
 const IPhoneCases = () => {
+  const { addToCart } = useCart();
+
+  const handleAddToCart = (product: typeof iphoneCases[0]) => {
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      originalPrice: product.originalPrice,
+      image: product.image,
+      category: "iPhone Cases",
+    });
+  };
+
   return (
     <section className="py-12">
       <div className="container mx-auto px-4">
@@ -109,6 +123,7 @@ const IPhoneCases = () => {
                 <Button
                   size="sm"
                   className="w-full mt-3 bg-primary hover:bg-primary/90"
+                  onClick={() => handleAddToCart(product)}
                 >
                   <ShoppingCart className="h-4 w-4 mr-1" />
                   Add to Cart

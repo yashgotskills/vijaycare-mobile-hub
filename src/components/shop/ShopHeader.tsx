@@ -3,12 +3,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { ShoppingCart, User, Heart, Menu, X, LogOut } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { useCart } from "@/contexts/CartContext";
 import SearchBar from "./SearchBar";
 import logo from "@/assets/logo.png";
 
 const ShopHeader = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const { totalItems } = useCart();
 
   const handleLogout = () => {
     localStorage.removeItem("vijaycare_user");
@@ -42,11 +44,18 @@ const ShopHeader = () => {
             <Button variant="ghost" size="icon" className="hidden sm:flex">
               <Heart className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon" className="relative">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="relative"
+              onClick={() => navigate("/cart")}
+            >
               <ShoppingCart className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
-                0
-              </span>
+              {totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                  {totalItems > 9 ? "9+" : totalItems}
+                </span>
+              )}
             </Button>
             <Button 
               variant="ghost" 
