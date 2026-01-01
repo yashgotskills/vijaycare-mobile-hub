@@ -14,7 +14,123 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      orders: {
+        Row: {
+          created_at: string
+          delivery_address: Json | null
+          id: string
+          items: Json
+          order_number: string
+          payment_method: string | null
+          status: string
+          total_amount: number
+          updated_at: string
+          user_phone: string
+        }
+        Insert: {
+          created_at?: string
+          delivery_address?: Json | null
+          id?: string
+          items?: Json
+          order_number: string
+          payment_method?: string | null
+          status?: string
+          total_amount: number
+          updated_at?: string
+          user_phone: string
+        }
+        Update: {
+          created_at?: string
+          delivery_address?: Json | null
+          id?: string
+          items?: Json
+          order_number?: string
+          payment_method?: string | null
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          user_phone?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          name: string | null
+          updated_at: string
+          user_phone: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          updated_at?: string
+          user_phone: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          updated_at?: string
+          user_phone?: string
+        }
+        Relationships: []
+      }
+      repair_requests: {
+        Row: {
+          address: string
+          brand: string
+          created_at: string
+          customer_name: string
+          device_type: string
+          id: string
+          issue_description: string | null
+          model: string | null
+          preferred_date: string
+          preferred_time: string
+          repair_type: string
+          request_number: string
+          status: string
+          updated_at: string
+          user_phone: string
+        }
+        Insert: {
+          address: string
+          brand: string
+          created_at?: string
+          customer_name: string
+          device_type: string
+          id?: string
+          issue_description?: string | null
+          model?: string | null
+          preferred_date: string
+          preferred_time: string
+          repair_type: string
+          request_number: string
+          status?: string
+          updated_at?: string
+          user_phone: string
+        }
+        Update: {
+          address?: string
+          brand?: string
+          created_at?: string
+          customer_name?: string
+          device_type?: string
+          id?: string
+          issue_description?: string | null
+          model?: string | null
+          preferred_date?: string
+          preferred_time?: string
+          repair_type?: string
+          request_number?: string
+          status?: string
+          updated_at?: string
+          user_phone?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
