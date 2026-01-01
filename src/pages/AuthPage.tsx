@@ -31,7 +31,7 @@ const AuthPage = () => {
     setTimeout(() => {
       localStorage.setItem("vijaycare_user", phoneNumber);
       toast({
-        title: "Welcome to VijayaCare!",
+        title: "Welcome to VijayCare!",
         description: "Registration successful",
       });
       navigate("/shop");
@@ -55,14 +55,15 @@ const AuthPage = () => {
             transition={{ delay: 0.2, type: "spring" }}
             className="flex justify-center mb-8"
           >
-            <img src={logo} alt="VijayaCare" className="h-20 w-20" />
+            <img src={logo} alt="VijayCare" className="h-20 w-20" />
           </motion.div>
 
           {/* Title */}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold font-heading text-foreground mb-2">
-              Welcome to VijayaCare
+              Welcome to VijayCare
             </h1>
+            <p className="text-accent font-medium mb-1">Where Mobile Meet Care</p>
             <p className="text-muted-foreground">
               Register with your phone number to continue
             </p>

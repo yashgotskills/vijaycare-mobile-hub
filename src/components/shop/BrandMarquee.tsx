@@ -33,12 +33,12 @@ const BrandMarquee = () => {
           {brands.map((brand, index) => (
             <div
               key={`first-${index}`}
-              className="flex-shrink-0 flex items-center justify-center h-12 w-32 grayscale hover:grayscale-0 opacity-60 hover:opacity-100 transition-all"
+              className="flex-shrink-0 flex items-center justify-center h-12 w-32"
             >
               <img
                 src={brand.logo}
                 alt={brand.name}
-                className="max-h-8 max-w-full object-contain"
+                className="max-h-8 max-w-full object-contain dark:invert"
                 loading="lazy"
               />
             </div>
@@ -47,12 +47,12 @@ const BrandMarquee = () => {
           {brands.map((brand, index) => (
             <div
               key={`second-${index}`}
-              className="flex-shrink-0 flex items-center justify-center h-12 w-32 grayscale hover:grayscale-0 opacity-60 hover:opacity-100 transition-all"
+              className="flex-shrink-0 flex items-center justify-center h-12 w-32"
             >
               <img
                 src={brand.logo}
                 alt={brand.name}
-                className="max-h-8 max-w-full object-contain"
+                className="max-h-8 max-w-full object-contain dark:invert"
                 loading="lazy"
               />
             </div>
@@ -61,12 +61,12 @@ const BrandMarquee = () => {
           {brands.map((brand, index) => (
             <div
               key={`third-${index}`}
-              className="flex-shrink-0 flex items-center justify-center h-12 w-32 grayscale hover:grayscale-0 opacity-60 hover:opacity-100 transition-all"
+              className="flex-shrink-0 flex items-center justify-center h-12 w-32"
             >
               <img
                 src={brand.logo}
                 alt={brand.name}
-                className="max-h-8 max-w-full object-contain"
+                className="max-h-8 max-w-full object-contain dark:invert"
                 loading="lazy"
               />
             </div>
