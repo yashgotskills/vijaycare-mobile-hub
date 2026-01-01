@@ -1,63 +1,33 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, X, ChevronRight, Smartphone } from "lucide-react";
+import { Search, X, ChevronRight, Smartphone, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-
-const allProducts = [
-  { id: 1, name: "iPhone 15 Pro Max Case", category: "Cases" },
-  { id: 2, name: "iPhone 15 Pro Case", category: "Cases" },
-  { id: 3, name: "iPhone 14 Case", category: "Cases" },
-  { id: 4, name: "Samsung Galaxy S24 Case", category: "Cases" },
-  { id: 5, name: "OnePlus 12 Case", category: "Cases" },
-  { id: 6, name: "AirPods Pro 2", category: "Audio" },
-  { id: 7, name: "Samsung Earbuds", category: "Audio" },
-  { id: 8, name: "Fast Charger 65W", category: "Chargers" },
-  { id: 9, name: "Wireless Charger Pad", category: "Chargers" },
-  { id: 10, name: "USB-C Cable 2m", category: "Cables" },
-  { id: 11, name: "Lightning Cable", category: "Cables" },
-  { id: 12, name: "Screen Protector iPhone 15", category: "Protection" },
-  { id: 13, name: "Tempered Glass Samsung", category: "Protection" },
-  { id: 14, name: "Phone Stand Holder", category: "Accessories" },
-  { id: 15, name: "Car Phone Mount", category: "Accessories" },
-  { id: 16, name: "Power Bank 20000mAh", category: "Power" },
-  { id: 17, name: "MagSafe Battery Pack", category: "Power" },
-  { id: 18, name: "Projector Mini", category: "Electronics" },
-  { id: 19, name: "Bluetooth Speaker", category: "Audio" },
-  { id: 20, name: "Smartwatch Band", category: "Wearables" },
-];
-
-const brands = [
-  { name: "Apple", products: 245, series: ["iPhone 16", "iPhone 15", "iPhone 14", "iPhone 13", "iPhone 12", "iPhone SE"] },
-  { name: "Samsung", products: 312, series: ["Galaxy S24", "Galaxy S23", "Galaxy A54", "Galaxy Z Fold", "Galaxy Z Flip"] },
-  { name: "OnePlus", products: 89, series: ["OnePlus 12", "OnePlus 11", "OnePlus Nord", "OnePlus Open"] },
-  { name: "Xiaomi", products: 156, series: ["Xiaomi 14", "Xiaomi 13", "Redmi Note 13", "Redmi 13", "POCO F6"] },
-  { name: "Oppo", products: 78, series: ["Find X7", "Reno 11", "Reno 10", "A Series"] },
-  { name: "Vivo", products: 92, series: ["X100", "V30", "Y Series", "T Series"] },
-  { name: "Realme", products: 67, series: ["GT 5", "12 Pro", "Narzo 70", "C Series"] },
-  { name: "Google", products: 45, series: ["Pixel 8", "Pixel 7", "Pixel Fold"] },
-  { name: "Nothing", products: 34, series: ["Phone 2a", "Phone 2", "Phone 1"] },
-  { name: "Motorola", products: 56, series: ["Edge 50", "Razr 40", "G Series"] },
-];
+import { useNavigate } from "react-router-dom";
+import { useProducts, useBrands } from "@/hooks/useProducts";
 
 const SearchBar = () => {
+  const navigate = useNavigate();
   const [query, setQuery] = useState("");
-  const [suggestions, setSuggestions] = useState<typeof allProducts>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [showBrandPanel, setShowBrandPanel] = useState(false);
-  const [selectedBrand, setSelectedBrand] = useState<typeof brands[0] | null>(null);
+  const [selectedBrand, setSelectedBrand] = useState<{ name: string; slug: string } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  
+  const { data: allProducts, isLoading } = useProducts();
+  const { data: brands } = useBrands();
+
+  const suggestions = query.length > 0 && allProducts
+    ? allProducts.filter(
+        (product) =>
+          product.name.toLowerCase().includes(query.toLowerCase()) ||
+          product.category?.name?.toLowerCase().includes(query.toLowerCase()) ||
+          product.brand?.name?.toLowerCase().includes(query.toLowerCase())
+      ).slice(0, 6)
+    : [];
 
   useEffect(() => {
     if (query.length > 0) {
-      const filtered = allProducts.filter(
-        (product) =>
-          product.name.toLowerCase().includes(query.toLowerCase()) ||
-          product.category.toLowerCase().includes(query.toLowerCase())
-      );
-      setSuggestions(filtered.slice(0, 6));
       setShowBrandPanel(false);
-    } else {
-      setSuggestions([]);
     }
   }, [query]);
 
@@ -80,12 +50,26 @@ const SearchBar = () => {
     }
   };
 
-  const handleBrandClick = (brand: typeof brands[0]) => {
+  const handleBrandClick = (brand: { name: string; slug: string }) => {
     setSelectedBrand(brand);
   };
 
-  const handleSeriesClick = (series: string) => {
-    setQuery(`${selectedBrand?.name} ${series}`);
+  const handleProductClick = (slug: string) => {
+    navigate(`/product/${slug}`);
+    setIsOpen(false);
+    setQuery("");
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (query.trim()) {
+      navigate(`/search?q=${encodeURIComponent(query.trim())}`);
+      setIsOpen(false);
+    }
+  };
+
+  const handleBrandSearch = (brandSlug: string) => {
+    navigate(`/search?brand=${brandSlug}`);
     setIsOpen(false);
     setShowBrandPanel(false);
     setSelectedBrand(null);
@@ -93,30 +77,33 @@ const SearchBar = () => {
 
   return (
     <div ref={containerRef} className="relative w-full max-w-2xl mx-auto">
-      <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-        <input
-          ref={inputRef}
-          type="text"
-          placeholder="Search for products, brands and more..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onFocus={handleFocus}
-          className="w-full h-12 pl-12 pr-12 rounded-full bg-background border border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all text-foreground placeholder:text-muted-foreground"
-        />
-        {query && (
-          <button
-            onClick={() => {
-              setQuery("");
-              setShowBrandPanel(true);
-              inputRef.current?.focus();
-            }}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        )}
-      </div>
+      <form onSubmit={handleSearch}>
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <input
+            ref={inputRef}
+            type="text"
+            placeholder="Search for products, brands and more..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onFocus={handleFocus}
+            className="w-full h-12 pl-12 pr-12 rounded-full bg-background border border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all text-foreground placeholder:text-muted-foreground"
+          />
+          {query && (
+            <button
+              type="button"
+              onClick={() => {
+                setQuery("");
+                setShowBrandPanel(true);
+                inputRef.current?.focus();
+              }}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          )}
+        </div>
+      </form>
 
       <AnimatePresence>
         {isOpen && (
@@ -127,58 +114,75 @@ const SearchBar = () => {
             className="absolute top-full left-0 right-0 mt-2 bg-card border border-border/50 rounded-xl shadow-xl overflow-hidden z-50"
           >
             {/* Product suggestions when typing */}
-            {query.length > 0 && suggestions.length > 0 && (
-              <div>
-                {suggestions.map((product, index) => (
-                  <motion.button
-                    key={product.id}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    onClick={() => {
-                      setQuery(product.name);
-                      setIsOpen(false);
-                    }}
-                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-accent/50 transition-colors text-left"
-                  >
-                    <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    <div>
-                      <p className="text-foreground font-medium">{product.name}</p>
-                      <p className="text-xs text-muted-foreground">{product.category}</p>
-                    </div>
-                  </motion.button>
-                ))}
-              </div>
+            {query.length > 0 && (
+              <>
+                {isLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                  </div>
+                ) : suggestions.length > 0 ? (
+                  <div>
+                    {suggestions.map((product, index) => (
+                      <motion.button
+                        key={product.id}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        onClick={() => handleProductClick(product.slug)}
+                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-accent/50 transition-colors text-left"
+                      >
+                        <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                          <img 
+                            src={product.images?.[0] || "https://placehold.co/100"} 
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-foreground font-medium truncate">{product.name}</p>
+                          <p className="text-xs text-muted-foreground">{product.category?.name}</p>
+                        </div>
+                        <span className="text-primary font-semibold">₹{product.price.toLocaleString()}</span>
+                      </motion.button>
+                    ))}
+                    <button
+                      onClick={handleSearch}
+                      className="w-full px-4 py-3 text-primary font-medium hover:bg-accent/30 transition-colors border-t border-border/30"
+                    >
+                      See all results for "{query}"
+                    </button>
+                  </div>
+                ) : (
+                  <div className="px-4 py-8 text-center text-muted-foreground">
+                    <p>No products found for "{query}"</p>
+                  </div>
+                )}
+              </>
             )}
 
             {/* Brand panel when search is empty */}
-            {showBrandPanel && query.length === 0 && (
-              <div className="flex min-h-[400px]">
+            {showBrandPanel && query.length === 0 && brands && (
+              <div className="flex min-h-[300px]">
                 {/* Brands list */}
                 <div className="w-1/2 border-r border-border/30">
                   <div className="px-4 py-3 bg-muted/50 border-b border-border/30">
                     <h3 className="font-semibold text-foreground text-sm">Shop by Brand</h3>
                   </div>
-                  <div className="max-h-[350px] overflow-y-auto">
+                  <div className="max-h-[250px] overflow-y-auto">
                     {brands.map((brand, index) => (
                       <motion.button
-                        key={brand.name}
+                        key={brand.id}
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.03 }}
-                        onClick={() => handleBrandClick(brand)}
+                        onClick={() => handleBrandClick({ name: brand.name, slug: brand.slug })}
                         className={`w-full flex items-center justify-between px-4 py-3 hover:bg-accent/50 transition-colors text-left ${
-                          selectedBrand?.name === brand.name ? "bg-accent/50" : ""
+                          selectedBrand?.slug === brand.slug ? "bg-accent/50" : ""
                         }`}
                       >
                         <div className="flex items-center gap-3">
                           <Smartphone className="h-4 w-4 text-primary" />
-                          <div>
-                            <p className="text-foreground font-medium">{brand.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {brand.products} products
-                            </p>
-                          </div>
+                          <p className="text-foreground font-medium">{brand.name}</p>
                         </div>
                         <ChevronRight className="h-4 w-4 text-muted-foreground" />
                       </motion.button>
@@ -186,44 +190,37 @@ const SearchBar = () => {
                   </div>
                 </div>
 
-                {/* Series list */}
+                {/* Brand selection action */}
                 <div className="w-1/2">
                   <div className="px-4 py-3 bg-muted/50 border-b border-border/30">
                     <h3 className="font-semibold text-foreground text-sm">
-                      {selectedBrand ? `${selectedBrand.name} Models` : "Select a brand"}
+                      {selectedBrand ? selectedBrand.name : "Select a brand"}
                     </h3>
                   </div>
-                  <div className="max-h-[350px] overflow-y-auto">
+                  <div className="p-4">
                     {selectedBrand ? (
-                      selectedBrand.series.map((series, index) => (
-                        <motion.button
-                          key={series}
-                          initial={{ opacity: 0, x: 10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: index * 0.03 }}
-                          onClick={() => handleSeriesClick(series)}
-                          className="w-full flex items-center justify-between px-4 py-3 hover:bg-accent/50 transition-colors text-left"
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="space-y-4"
+                      >
+                        <p className="text-sm text-muted-foreground">
+                          Browse all {selectedBrand.name} products
+                        </p>
+                        <button
+                          onClick={() => handleBrandSearch(selectedBrand.slug)}
+                          className="w-full py-3 px-4 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
                         >
-                          <span className="text-foreground">{series}</span>
-                          <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
-                            {Math.floor(Math.random() * 50) + 10} items
-                          </span>
-                        </motion.button>
-                      ))
+                          View All {selectedBrand.name}
+                        </button>
+                      </motion.div>
                     ) : (
-                      <div className="flex items-center justify-center h-[200px] text-muted-foreground">
-                        <p className="text-sm">← Select a brand to view models</p>
+                      <div className="flex items-center justify-center h-[150px] text-muted-foreground">
+                        <p className="text-sm">← Select a brand to browse</p>
                       </div>
                     )}
                   </div>
                 </div>
-              </div>
-            )}
-
-            {/* No results */}
-            {query.length > 0 && suggestions.length === 0 && (
-              <div className="px-4 py-8 text-center text-muted-foreground">
-                <p>No products found for "{query}"</p>
               </div>
             )}
           </motion.div>
