@@ -1,6 +1,12 @@
 import { motion } from "framer-motion";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 
+import motorolaLogo from "@/assets/brands/motorola.svg";
+import nothingLogo from "@/assets/brands/nothing.svg";
+import oppoLogo from "@/assets/brands/oppo.svg";
+import realmeLogo from "@/assets/brands/realme.svg";
+import vivoLogo from "@/assets/brands/vivo.svg";
+
 const brands = [
   {
     name: "Apple",
@@ -24,19 +30,19 @@ const brands = [
   },
   {
     name: "Oppo",
-    // Use a brand-colored icon CDN (more reliable than Clearbit for some domains).
-    logo: "https://cdn.simpleicons.org/oppo/05BA5A",
-    fallback: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/oppo.svg",
+    // Use local, colored SVG to avoid flaky CDNs and keep consistent brand color.
+    logo: oppoLogo,
+    fallback: "https://cdn.simpleicons.org/oppo/05BA5A",
   },
   {
     name: "Vivo",
-    logo: "https://cdn.simpleicons.org/vivo/415FFF",
-    fallback: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/vivo.svg",
+    logo: vivoLogo,
+    fallback: "https://cdn.simpleicons.org/vivo/415FFF",
   },
   {
     name: "Realme",
-    logo: "https://cdn.simpleicons.org/realme/FFCA13",
-    fallback: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/realme.svg",
+    logo: realmeLogo,
+    fallback: "https://logo.clearbit.com/realme.com?size=128",
   },
   {
     name: "Google",
@@ -45,15 +51,14 @@ const brands = [
   },
   {
     name: "Nothing",
-    // Official brand color is black; we invert in dark mode so it stays visible.
-    logo: "https://cdn.simpleicons.org/nothing/000000",
+    // Brand is black; invert in dark mode so it stays visible.
+    logo: nothingLogo,
     fallback: "https://logo.clearbit.com/nothing.tech?size=128",
   },
   {
     name: "Motorola",
-    // Clearbit can be flaky; use icon CDN.
-    logo: "https://cdn.simpleicons.org/motorola/2D78D2",
-    fallback: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/motorola.svg",
+    logo: motorolaLogo,
+    fallback: "https://cdn.simpleicons.org/motorola/2D78D2",
   },
 ] as const;
 
@@ -64,20 +69,23 @@ function BrandTile({ brand }: { brand: Brand }) {
 
   return (
     <div className="flex-shrink-0 flex flex-col items-center justify-center h-16 w-36 gap-2">
-      <img
-        src={brand.logo}
-        alt={`${brand.name} brand logo`}
-        className={`max-h-10 max-w-full object-contain ${extraImgClass}`}
-        loading="lazy"
-        referrerPolicy="no-referrer"
-        onError={(e) => {
-          const img = e.currentTarget;
-          // prevent infinite loop
-          if (img.dataset.fallbackApplied === "1") return;
-          img.dataset.fallbackApplied = "1";
-          img.src = brand.fallback;
-        }}
-      />
+      <div className="rounded-md border border-border/40 bg-background/70 px-3 py-2 shadow-sm">
+        <img
+          src={brand.logo}
+          alt={`${brand.name} brand logo`}
+          className={`max-h-10 max-w-full object-contain ${extraImgClass}`}
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          onError={(e) => {
+            if (!brand.fallback) return;
+            const img = e.currentTarget;
+            // prevent infinite loop
+            if (img.dataset.fallbackApplied === "1") return;
+            img.dataset.fallbackApplied = "1";
+            img.src = brand.fallback;
+          }}
+        />
+      </div>
       <span className="text-xs font-medium text-muted-foreground">{brand.name}</span>
     </div>
   );
@@ -125,9 +133,9 @@ const BrandMarquee = () => {
                 }
               : undefined
           }
-          className="flex w-max gap-16 items-center"
+          className="flex w-max items-center"
         >
-          <div ref={firstSetRef} className="flex gap-16 items-center">
+          <div ref={firstSetRef} className="flex gap-16 items-center pr-16">
             {brands.map((brand) => (
               <BrandTile key={`a-${brand.name}`} brand={brand} />
             ))}
