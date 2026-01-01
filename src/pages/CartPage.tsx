@@ -189,7 +189,11 @@ const CartPage = () => {
                     <span className="text-foreground">₹{total.toLocaleString()}</span>
                   </div>
 
-                  <Button className="w-full mt-6" size="lg">
+                  <Button 
+                    className="w-full mt-6" 
+                    size="lg"
+                    onClick={() => navigate("/checkout")}
+                  >
                     Proceed to Checkout
                   </Button>
 
