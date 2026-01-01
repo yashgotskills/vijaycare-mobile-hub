@@ -11,6 +11,7 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import { supabase } from "@/integrations/supabase/client";
 import ShopHeader from "@/components/shop/ShopHeader";
 import Footer from "@/components/Footer";
+import NotificationToggle from "@/components/NotificationToggle";
 
 interface Order {
   id: string;
@@ -128,14 +129,17 @@ const ProfilePage = () => {
           {/* Profile Header */}
           <Card className="mb-6 border-border/50 bg-card/50 backdrop-blur-sm">
             <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                  <User className="w-8 h-8 text-primary" />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                    <User className="w-8 h-8 text-primary" />
+                  </div>
+                  <div>
+                    <h1 className="text-2xl font-heading font-bold text-foreground">My Account</h1>
+                    <p className="text-muted-foreground">+91 {userPhone}</p>
+                  </div>
                 </div>
-                <div>
-                  <h1 className="text-2xl font-heading font-bold text-foreground">My Account</h1>
-                  <p className="text-muted-foreground">+91 {userPhone}</p>
-                </div>
+                <NotificationToggle />
               </div>
             </CardContent>
           </Card>
