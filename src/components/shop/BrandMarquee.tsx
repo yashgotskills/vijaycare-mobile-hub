@@ -1,5 +1,4 @@
-import { motion } from "framer-motion";
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 import motorolaLogo from "@/assets/brands/motorola.svg";
 import nothingLogo from "@/assets/brands/nothing.svg";
@@ -30,7 +29,6 @@ const brands = [
   },
   {
     name: "Oppo",
-    // Use local, colored SVG to avoid flaky CDNs and keep consistent brand color.
     logo: oppoLogo,
     fallback: "https://cdn.simpleicons.org/oppo/05BA5A",
   },
@@ -51,7 +49,6 @@ const brands = [
   },
   {
     name: "Nothing",
-    // Brand is black; invert in dark mode so it stays visible.
     logo: nothingLogo,
     fallback: "https://logo.clearbit.com/nothing.tech?size=128",
   },
@@ -79,7 +76,6 @@ function BrandTile({ brand }: { brand: Brand }) {
           onError={(e) => {
             if (!brand.fallback) return;
             const img = e.currentTarget;
-            // prevent infinite loop
             if (img.dataset.fallbackApplied === "1") return;
             img.dataset.fallbackApplied = "1";
             img.src = brand.fallback;
@@ -92,14 +88,19 @@ function BrandTile({ brand }: { brand: Brand }) {
 }
 
 const BrandMarquee = () => {
-  const firstSetRef = useRef<HTMLDivElement | null>(null);
-  const [setWidth, setSetWidth] = useState(0);
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const [duration, setDuration] = useState(0);
 
   useLayoutEffect(() => {
-    const el = firstSetRef.current;
+    const el = trackRef.current;
     if (!el) return;
 
-    const update = () => setSetWidth(el.scrollWidth);
+    const update = () => {
+      // Measure just the first set (half of the duplicated content)
+      const setWidth = el.scrollWidth / 2;
+      const pxPerSecond = 70;
+      setDuration(setWidth / pxPerSecond);
+    };
     update();
 
     const ro = new ResizeObserver(update);
@@ -107,46 +108,28 @@ const BrandMarquee = () => {
     return () => ro.disconnect();
   }, []);
 
-  const duration = useMemo(() => {
-    // Keep speed consistent across viewport sizes.
-    const pxPerSecond = 70;
-    return setWidth ? setWidth / pxPerSecond : 0;
-  }, [setWidth]);
-
   return (
     <section
       aria-label="Supported phone brands"
       className="overflow-hidden bg-card/50 py-8 border-y border-border/30"
     >
-      <div className="relative">
-        <motion.div
-          animate={setWidth ? { x: [0, -setWidth] } : undefined}
-          transition={
-            setWidth
-              ? {
-                  x: {
-                    repeat: Infinity,
-                    repeatType: "loop",
-                    duration,
-                    ease: "linear",
-                  },
-                }
-              : undefined
-          }
-          className="flex w-max items-center"
-        >
-          <div ref={firstSetRef} className="flex gap-16 items-center pr-16">
-            {brands.map((brand) => (
-              <BrandTile key={`a-${brand.name}`} brand={brand} />
-            ))}
-          </div>
-
-          <div className="flex gap-16 items-center" aria-hidden="true">
-            {brands.map((brand) => (
-              <BrandTile key={`b-${brand.name}`} brand={brand} />
-            ))}
-          </div>
-        </motion.div>
+      <div
+        ref={trackRef}
+        className="flex w-max items-center gap-16 marquee-track"
+        style={
+          duration
+            ? ({ "--marquee-duration": `${duration}s` } as React.CSSProperties)
+            : undefined
+        }
+      >
+        {/* First set */}
+        {brands.map((brand) => (
+          <BrandTile key={`a-${brand.name}`} brand={brand} />
+        ))}
+        {/* Duplicate set for seamless loop */}
+        {brands.map((brand) => (
+          <BrandTile key={`b-${brand.name}`} brand={brand} aria-hidden />
+        ))}
       </div>
     </section>
   );
