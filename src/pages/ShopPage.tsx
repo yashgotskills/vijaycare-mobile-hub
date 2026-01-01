@@ -6,6 +6,7 @@ import BannerCarousel from "@/components/shop/BannerCarousel";
 import BrandMarquee from "@/components/shop/BrandMarquee";
 import IPhoneCases from "@/components/shop/IPhoneCases";
 import AccessoriesSection from "@/components/shop/AccessoriesSection";
+import RepairServiceBanner from "@/components/shop/RepairServiceBanner";
 import Footer from "@/components/Footer";
 
 const ShopPage = () => {
@@ -34,6 +35,9 @@ const ShopPage = () => {
 
         {/* iPhone Cases */}
         <IPhoneCases />
+
+        {/* Repair Service Banner */}
+        <RepairServiceBanner />
 
         {/* Accessories */}
         <AccessoriesSection />
