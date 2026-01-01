@@ -89,23 +89,34 @@ function BrandTile({ brand }: { brand: Brand }) {
 
 const BrandMarquee = () => {
   const trackRef = useRef<HTMLDivElement | null>(null);
-  const [duration, setDuration] = useState(0);
+  const [duration, setDuration] = useState(20); // Default duration
 
   useLayoutEffect(() => {
     const el = trackRef.current;
     if (!el) return;
 
-    const update = () => {
-      // Measure just the first set (half of the duplicated content)
+    // Small delay to ensure layout is complete
+    const timer = setTimeout(() => {
       const setWidth = el.scrollWidth / 2;
-      const pxPerSecond = 70;
-      setDuration(setWidth / pxPerSecond);
-    };
-    update();
+      if (setWidth > 0) {
+        const pxPerSecond = 70;
+        setDuration(setWidth / pxPerSecond);
+      }
+    }, 100);
 
-    const ro = new ResizeObserver(update);
+    const ro = new ResizeObserver(() => {
+      const setWidth = el.scrollWidth / 2;
+      if (setWidth > 0) {
+        const pxPerSecond = 70;
+        setDuration(setWidth / pxPerSecond);
+      }
+    });
     ro.observe(el);
-    return () => ro.disconnect();
+
+    return () => {
+      clearTimeout(timer);
+      ro.disconnect();
+    };
   }, []);
 
   return (
@@ -116,11 +127,7 @@ const BrandMarquee = () => {
       <div
         ref={trackRef}
         className="flex w-max items-center gap-16 marquee-track"
-        style={
-          duration
-            ? ({ "--marquee-duration": `${duration}s` } as React.CSSProperties)
-            : undefined
-        }
+        style={{ "--marquee-duration": `${duration}s` } as React.CSSProperties}
       >
         {/* First set */}
         {brands.map((brand) => (
