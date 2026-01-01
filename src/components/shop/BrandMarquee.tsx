@@ -1,17 +1,80 @@
 import { motion } from "framer-motion";
 
 const brands = [
-  { name: "Apple", logo: "https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg", color: "#555555" },
-  { name: "Samsung", logo: "https://upload.wikimedia.org/wikipedia/commons/2/24/Samsung_Logo.svg", color: "#1428a0" },
-  { name: "OnePlus", logo: "https://upload.wikimedia.org/wikipedia/commons/9/9e/OnePlus_logo.svg", color: "#f50514" },
-  { name: "Xiaomi", logo: "https://upload.wikimedia.org/wikipedia/commons/a/ae/Xiaomi_logo_%282021-%29.svg", color: "#ff6900" },
-  { name: "Oppo", logo: "https://upload.wikimedia.org/wikipedia/commons/0/0a/OPPO_LOGO_2019.svg", color: "#1a9f4a" },
-  { name: "Vivo", logo: "https://upload.wikimedia.org/wikipedia/commons/1/10/Vivo_logo_2019.svg", color: "#415fff" },
-  { name: "Realme", logo: "https://upload.wikimedia.org/wikipedia/commons/9/91/Realme_logo.svg", color: "#f5c900" },
-  { name: "Google", logo: "https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg", color: "#4285f4" },
-  { name: "Nothing", logo: "https://upload.wikimedia.org/wikipedia/commons/c/c5/Nothing_logo.svg", color: "#000000" },
-  { name: "Motorola", logo: "https://upload.wikimedia.org/wikipedia/commons/4/45/Motorola-logo.svg", color: "#5c92fa" },
-];
+  {
+    name: "Apple",
+    logo: "https://logo.clearbit.com/apple.com?size=128",
+    fallback: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/apple.svg",
+  },
+  {
+    name: "Samsung",
+    logo: "https://logo.clearbit.com/samsung.com?size=128",
+    fallback: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/samsung.svg",
+  },
+  {
+    name: "OnePlus",
+    logo: "https://logo.clearbit.com/oneplus.com?size=128",
+    fallback: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/oneplus.svg",
+  },
+  {
+    name: "Xiaomi",
+    logo: "https://logo.clearbit.com/mi.com?size=128",
+    fallback: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/xiaomi.svg",
+  },
+  {
+    name: "Oppo",
+    logo: "https://logo.clearbit.com/oppo.com?size=128",
+    fallback: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/oppo.svg",
+  },
+  {
+    name: "Vivo",
+    logo: "https://logo.clearbit.com/vivo.com?size=128",
+    fallback: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/vivo.svg",
+  },
+  {
+    name: "Realme",
+    logo: "https://logo.clearbit.com/realme.com?size=128",
+    fallback: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/realme.svg",
+  },
+  {
+    name: "Google",
+    logo: "https://logo.clearbit.com/google.com?size=128",
+    fallback: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/google.svg",
+  },
+  {
+    name: "Nothing",
+    logo: "https://logo.clearbit.com/nothing.tech?size=128",
+    fallback: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/nothing.svg",
+  },
+  {
+    name: "Motorola",
+    logo: "https://logo.clearbit.com/motorola.com?size=128",
+    fallback: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/motorola.svg",
+  },
+] as const;
+
+type Brand = (typeof brands)[number];
+
+function BrandTile({ brand }: { brand: Brand }) {
+  return (
+    <div className="flex-shrink-0 flex flex-col items-center justify-center h-16 w-36 gap-2">
+      <img
+        src={brand.logo}
+        alt={`${brand.name} brand logo`}
+        className="max-h-10 max-w-full object-contain"
+        loading="lazy"
+        onError={(e) => {
+          const img = e.currentTarget;
+          // prevent infinite loop
+          if (img.dataset.fallbackApplied === "1") return;
+          img.dataset.fallbackApplied = "1";
+          img.src = brand.fallback;
+        }}
+      />
+      <span className="text-xs font-medium text-muted-foreground">{brand.name}</span>
+    </div>
+  );
+}
 
 const BrandMarquee = () => {
   return (
@@ -29,49 +92,11 @@ const BrandMarquee = () => {
           }}
           className="flex gap-16 items-center"
         >
-          {/* First set */}
-          {brands.map((brand, index) => (
-            <div
-              key={`first-${index}`}
-              className="flex-shrink-0 flex flex-col items-center justify-center h-16 w-36 gap-2"
-            >
-              <img
-                src={brand.logo}
-                alt={brand.name}
-                className="max-h-10 max-w-full object-contain"
-                loading="lazy"
-              />
-              <span className="text-xs font-medium text-muted-foreground">{brand.name}</span>
-            </div>
-          ))}
-          {/* Duplicate for seamless loop */}
-          {brands.map((brand, index) => (
-            <div
-              key={`second-${index}`}
-              className="flex-shrink-0 flex flex-col items-center justify-center h-16 w-36 gap-2"
-            >
-              <img
-                src={brand.logo}
-                alt={brand.name}
-                className="max-h-10 max-w-full object-contain"
-                loading="lazy"
-              />
-              <span className="text-xs font-medium text-muted-foreground">{brand.name}</span>
-            </div>
-          ))}
-          {/* Third set for extra smoothness */}
-          {brands.map((brand, index) => (
-            <div
-              key={`third-${index}`}
-              className="flex-shrink-0 flex flex-col items-center justify-center h-16 w-36 gap-2"
-            >
-              <img
-                src={brand.logo}
-                alt={brand.name}
-                className="max-h-10 max-w-full object-contain"
-                loading="lazy"
-              />
-              <span className="text-xs font-medium text-muted-foreground">{brand.name}</span>
+          {Array.from({ length: 3 }).map((_, setIndex) => (
+            <div key={setIndex} className="flex gap-16 items-center">
+              {brands.map((brand) => (
+                <BrandTile key={`${setIndex}-${brand.name}`} brand={brand} />
+              ))}
             </div>
           ))}
         </motion.div>
