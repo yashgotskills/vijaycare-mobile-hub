@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import ShopHeader from "@/components/shop/ShopHeader";
 import Footer from "@/components/Footer";
+import CouponInput from "@/components/shop/CouponInput";
 import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -37,13 +38,17 @@ const CheckoutPage = () => {
   const [selectedPayment, setSelectedPayment] = useState<string>("cod");
   const [isProcessing, setIsProcessing] = useState(false);
   
+  // Coupon state
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  
   // Location detection state
   const [locationStatus, setLocationStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [detectedAddress, setDetectedAddress] = useState<DetectedAddress | null>(null);
 
   const subtotal = totalPrice;
   const shipping = subtotal > 500 ? 0 : 49;
-  const total = subtotal + shipping;
+  const total = subtotal + shipping - couponDiscount;
 
   // Request location on mount
   useEffect(() => {
@@ -363,6 +368,23 @@ const CheckoutPage = () => {
 
                   <Separator />
 
+                  {/* Coupon */}
+                  <CouponInput
+                    subtotal={subtotal}
+                    appliedCode={appliedCoupon}
+                    appliedDiscount={couponDiscount}
+                    onApply={(discount, code) => {
+                      setCouponDiscount(discount);
+                      setAppliedCoupon(code);
+                    }}
+                    onRemove={() => {
+                      setCouponDiscount(0);
+                      setAppliedCoupon(null);
+                    }}
+                  />
+
+                  <Separator />
+
                   {/* Pricing */}
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
@@ -375,6 +397,12 @@ const CheckoutPage = () => {
                         {shipping === 0 ? <span className="text-green-600">FREE</span> : `₹${shipping}`}
                       </span>
                     </div>
+                    {couponDiscount > 0 && (
+                      <div className="flex justify-between text-green-600">
+                        <span>Coupon Discount</span>
+                        <span>-₹{couponDiscount.toLocaleString()}</span>
+                      </div>
+                    )}
                   </div>
 
                   <Separator />

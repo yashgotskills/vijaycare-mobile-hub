@@ -13,7 +13,8 @@ import {
   Minus,
   Plus,
   ShoppingCart,
-  Zap
+  Zap,
+  MessageSquare
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,22 +23,26 @@ import { Skeleton } from "@/components/ui/skeleton";
 import ShopHeader from "@/components/shop/ShopHeader";
 import Footer from "@/components/Footer";
 import ProductGrid from "@/components/shop/ProductGrid";
+import ReviewForm from "@/components/shop/ReviewForm";
 import { useProduct, useProducts, useProductReviews } from "@/hooks/useProducts";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 const ProductDetailPage = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data: product, isLoading } = useProduct(slug || "");
-  const { data: reviews } = useProductReviews(product?.id || "");
+  const { data: reviews, refetch: refetchReviews } = useProductReviews(product?.id || "");
   const { data: relatedProducts } = useProducts({ limit: 4 });
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [showReviewForm, setShowReviewForm] = useState(false);
 
   if (isLoading) {
     return (
@@ -397,6 +402,33 @@ const ProductDetailPage = () => {
           </TabsContent>
 
           <TabsContent value="reviews" className="py-6">
+            {/* Write Review Button */}
+            {!showReviewForm && (
+              <Button 
+                onClick={() => setShowReviewForm(true)}
+                variant="outline"
+                className="mb-6 gap-2"
+              >
+                <MessageSquare className="h-4 w-4" />
+                Write a Review
+              </Button>
+            )}
+
+            {/* Review Form */}
+            {showReviewForm && product && (
+              <div className="mb-6">
+                <ReviewForm
+                  productId={product.id}
+                  onSuccess={() => {
+                    setShowReviewForm(false);
+                    refetchReviews();
+                  }}
+                  onCancel={() => setShowReviewForm(false)}
+                />
+              </div>
+            )}
+
+            {/* Reviews List */}
             {reviews && reviews.length > 0 ? (
               <div className="space-y-4">
                 {reviews.map((review) => (
@@ -419,7 +451,9 @@ const ProductDetailPage = () => {
                 ))}
               </div>
             ) : (
-              <p className="text-muted-foreground">No reviews yet. Be the first to review!</p>
+              !showReviewForm && (
+                <p className="text-muted-foreground">No reviews yet. Be the first to review!</p>
+              )
             )}
           </TabsContent>
         </Tabs>
