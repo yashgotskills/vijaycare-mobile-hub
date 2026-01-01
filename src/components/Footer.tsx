@@ -1,4 +1,5 @@
 import { Phone, Mail, MapPin, Facebook, Instagram, Twitter, Youtube } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 const Footer = () => {
   const quickLinks = [
@@ -31,13 +32,14 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Brand */}
           <div>
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-primary-gradient flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-xl">V</span>
+            <div className="flex items-center gap-3 mb-4">
+              <img src={logo} alt="VijayCare" className="h-12 w-12" />
+              <div>
+                <span className="font-display font-bold text-xl block">
+                  Vijay<span className="text-accent">Care</span>
+                </span>
+                <span className="text-accent text-sm">Where Mobile Meet Care</span>
               </div>
-              <span className="font-display font-bold text-xl">
-                Vijaya<span className="text-accent">Care</span>
-              </span>
             </div>
             <p className="text-background/70 mb-6">
               Your trusted destination for premium mobile accessories and expert repair services.
@@ -122,7 +124,7 @@ const Footer = () => {
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-background/60 text-sm">
-              © {new Date().getFullYear()} VijayaCare. All rights reserved.
+              © {new Date().getFullYear()} VijayCare. All rights reserved.
             </p>
             <div className="flex gap-6 text-sm">
               <a href="#" className="text-background/60 hover:text-accent">
