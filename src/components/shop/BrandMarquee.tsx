@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 
 const brands = [
   {
@@ -23,18 +24,19 @@ const brands = [
   },
   {
     name: "Oppo",
-    logo: "https://logo.clearbit.com/oppo.com?size=128",
-    fallback: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/oppo.svg",
+    // Clearbit often fails for this domain; use brand-colored Simple Icons CDN.
+    logo: "https://cdn.simpleicons.org/oppo",
+    fallback: "https://cdn.simpleicons.org/oppo",
   },
   {
     name: "Vivo",
-    logo: "https://logo.clearbit.com/vivo.com?size=128",
-    fallback: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/vivo.svg",
+    logo: "https://cdn.simpleicons.org/vivo",
+    fallback: "https://cdn.simpleicons.org/vivo",
   },
   {
     name: "Realme",
-    logo: "https://logo.clearbit.com/realme.com?size=128",
-    fallback: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/realme.svg",
+    logo: "https://cdn.simpleicons.org/realme",
+    fallback: "https://cdn.simpleicons.org/realme",
   },
   {
     name: "Google",
@@ -43,8 +45,8 @@ const brands = [
   },
   {
     name: "Nothing",
-    logo: "https://logo.clearbit.com/nothing.tech?size=128",
-    fallback: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/nothing.svg",
+    logo: "https://cdn.simpleicons.org/nothing",
+    fallback: "https://cdn.simpleicons.org/nothing",
   },
   {
     name: "Motorola",
@@ -77,31 +79,63 @@ function BrandTile({ brand }: { brand: Brand }) {
 }
 
 const BrandMarquee = () => {
+  const firstSetRef = useRef<HTMLDivElement | null>(null);
+  const [setWidth, setSetWidth] = useState(0);
+
+  useLayoutEffect(() => {
+    const el = firstSetRef.current;
+    if (!el) return;
+
+    const update = () => setSetWidth(el.scrollWidth);
+    update();
+
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const duration = useMemo(() => {
+    // Keep speed consistent across viewport sizes.
+    const pxPerSecond = 70;
+    return setWidth ? setWidth / pxPerSecond : 0;
+  }, [setWidth]);
+
   return (
-    <div className="overflow-hidden bg-card/50 py-8 border-y border-border/30">
+    <section
+      aria-label="Supported phone brands"
+      className="overflow-hidden bg-card/50 py-8 border-y border-border/30"
+    >
       <div className="relative">
         <motion.div
-          animate={{ x: [0, -1920] }}
-          transition={{
-            x: {
-              repeat: Infinity,
-              repeatType: "loop",
-              duration: 25,
-              ease: "linear",
-            },
-          }}
-          className="flex gap-16 items-center"
+          animate={setWidth ? { x: [0, -setWidth] } : undefined}
+          transition={
+            setWidth
+              ? {
+                  x: {
+                    repeat: Infinity,
+                    repeatType: "loop",
+                    duration,
+                    ease: "linear",
+                  },
+                }
+              : undefined
+          }
+          className="flex w-max gap-16 items-center"
         >
-          {Array.from({ length: 3 }).map((_, setIndex) => (
-            <div key={setIndex} className="flex gap-16 items-center">
-              {brands.map((brand) => (
-                <BrandTile key={`${setIndex}-${brand.name}`} brand={brand} />
-              ))}
-            </div>
-          ))}
+          <div ref={firstSetRef} className="flex gap-16 items-center">
+            {brands.map((brand) => (
+              <BrandTile key={`a-${brand.name}`} brand={brand} />
+            ))}
+          </div>
+
+          <div className="flex gap-16 items-center" aria-hidden="true">
+            {brands.map((brand) => (
+              <BrandTile key={`b-${brand.name}`} brand={brand} />
+            ))}
+          </div>
         </motion.div>
       </div>
-    </div>
+    </section>
   );
 };
 
