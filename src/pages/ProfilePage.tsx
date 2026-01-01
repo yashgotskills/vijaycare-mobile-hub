@@ -1,54 +1,118 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { User, MapPin, Heart, Package, ChevronRight, Plus, Trash2, Edit } from "lucide-react";
+import { User, Heart, Package, ChevronRight, Trash2, Wrench, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/contexts/CartContext";
+import { useWishlist } from "@/contexts/WishlistContext";
+import { supabase } from "@/integrations/supabase/client";
 import ShopHeader from "@/components/shop/ShopHeader";
 import Footer from "@/components/Footer";
 
-// Mock data
-const mockOrders = [
-  { id: "ORD001", date: "2024-01-15", status: "Delivered", total: 2499, items: 2 },
-  { id: "ORD002", date: "2024-01-10", status: "In Transit", total: 999, items: 1 },
-  { id: "ORD003", date: "2024-01-05", status: "Processing", total: 4999, items: 3 },
-];
+interface Order {
+  id: string;
+  order_number: string;
+  created_at: string;
+  status: string;
+  total_amount: number;
+  items: unknown;
+}
 
-const mockAddresses = [
-  { id: 1, name: "Home", address: "123 Main Street, Apartment 4B", city: "Mumbai", state: "Maharashtra", pincode: "400001", phone: "9876543210", isDefault: true },
-  { id: 2, name: "Office", address: "456 Business Park, Tower A", city: "Mumbai", state: "Maharashtra", pincode: "400051", phone: "9876543211", isDefault: false },
-];
-
-const mockWishlist = [
-  { id: 1, name: "iPhone 15 Pro Max Case", price: 999, image: "https://images.unsplash.com/photo-1603791239531-1dda55e194a6?w=200" },
-  { id: 2, name: "Samsung Galaxy S24 Ultra Cover", price: 899, image: "https://images.unsplash.com/photo-1609692814858-f7cd2f0afa4f?w=200" },
-  { id: 3, name: "Premium Wireless Earbuds", price: 2999, image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=200" },
-];
+interface RepairRequest {
+  id: string;
+  request_number: string;
+  created_at: string;
+  status: string;
+  device_type: string;
+  brand: string;
+  repair_type: string;
+}
 
 const ProfilePage = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("orders");
-  const userPhone = localStorage.getItem("vijaycare_user") || "+91 9876543210";
+  const userPhone = localStorage.getItem("vijaycare_user") || "";
   const { addToCart } = useCart();
+  const { items: wishlistItems, removeFromWishlist } = useWishlist();
+  
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [repairRequests, setRepairRequests] = useState<RepairRequest[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleAddToCart = (item: typeof mockWishlist[0]) => {
+  useEffect(() => {
+    if (!userPhone) {
+      navigate("/");
+      return;
+    }
+    fetchUserData();
+  }, [userPhone, navigate]);
+
+  const fetchUserData = async () => {
+    setIsLoading(true);
+    try {
+      // Fetch orders
+      const { data: ordersData, error: ordersError } = await supabase
+        .from("orders")
+        .select("*")
+        .eq("user_phone", userPhone)
+        .order("created_at", { ascending: false });
+
+      if (ordersError) throw ordersError;
+      setOrders(ordersData || []);
+
+      // Fetch repair requests
+      const { data: repairsData, error: repairsError } = await supabase
+        .from("repair_requests")
+        .select("*")
+        .eq("user_phone", userPhone)
+        .order("created_at", { ascending: false });
+
+      if (repairsError) throw repairsError;
+      setRepairRequests(repairsData || []);
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAddToCart = (item: typeof wishlistItems[0]) => {
     addToCart({
-      id: item.id + 200, // Offset to avoid ID conflicts
+      id: item.id,
       name: item.name,
       price: item.price,
-      originalPrice: item.price,
+      originalPrice: item.originalPrice,
       image: item.image,
     });
   };
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Delivered": return "bg-green-500/10 text-green-600 border-green-500/20";
-      case "In Transit": return "bg-blue-500/10 text-blue-600 border-blue-500/20";
-      case "Processing": return "bg-yellow-500/10 text-yellow-600 border-yellow-500/20";
-      default: return "bg-muted text-muted-foreground";
+    switch (status.toLowerCase()) {
+      case "delivered":
+      case "completed":
+        return "bg-green-500/10 text-green-600 border-green-500/20";
+      case "in transit":
+      case "in progress":
+        return "bg-blue-500/10 text-blue-600 border-blue-500/20";
+      case "processing":
+      case "pending":
+        return "bg-yellow-500/10 text-yellow-600 border-yellow-500/20";
+      case "cancelled":
+        return "bg-red-500/10 text-red-600 border-red-500/20";
+      default:
+        return "bg-muted text-muted-foreground";
     }
+  };
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
   };
 
   return (
@@ -70,7 +134,7 @@ const ProfilePage = () => {
                 </div>
                 <div>
                   <h1 className="text-2xl font-heading font-bold text-foreground">My Account</h1>
-                  <p className="text-muted-foreground">{userPhone}</p>
+                  <p className="text-muted-foreground">+91 {userPhone}</p>
                 </div>
               </div>
             </CardContent>
@@ -83,9 +147,9 @@ const ProfilePage = () => {
                 <Package className="w-4 h-4" />
                 <span className="hidden sm:inline">Orders</span>
               </TabsTrigger>
-              <TabsTrigger value="addresses" className="flex items-center gap-2">
-                <MapPin className="w-4 h-4" />
-                <span className="hidden sm:inline">Addresses</span>
+              <TabsTrigger value="repairs" className="flex items-center gap-2">
+                <Wrench className="w-4 h-4" />
+                <span className="hidden sm:inline">Repairs</span>
               </TabsTrigger>
               <TabsTrigger value="wishlist" className="flex items-center gap-2">
                 <Heart className="w-4 h-4" />
@@ -99,30 +163,40 @@ const ProfilePage = () => {
                 <h2 className="text-xl font-heading font-semibold text-foreground">Order History</h2>
               </div>
               
-              {mockOrders.length > 0 ? (
+              {isLoading ? (
                 <div className="space-y-3">
-                  {mockOrders.map((order) => (
+                  {[1, 2, 3].map((i) => (
+                    <Card key={i} className="border-border/50 animate-pulse">
+                      <CardContent className="p-4">
+                        <div className="h-12 bg-muted rounded" />
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : orders.length > 0 ? (
+                <div className="space-y-3">
+                  {orders.map((order) => (
                     <motion.div
                       key={order.id}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                     >
-                      <Card className="border-border/50 hover:border-primary/30 transition-colors cursor-pointer">
+                      <Card className="border-border/50 hover:border-primary/30 transition-colors">
                         <CardContent className="p-4">
                           <div className="flex items-center justify-between">
                             <div className="space-y-1">
                               <div className="flex items-center gap-3">
-                                <span className="font-semibold text-foreground">{order.id}</span>
+                                <span className="font-semibold text-foreground">{order.order_number}</span>
                                 <Badge variant="outline" className={getStatusColor(order.status)}>
                                   {order.status}
                                 </Badge>
                               </div>
                               <p className="text-sm text-muted-foreground">
-                                {order.items} items • Ordered on {order.date}
+                                {Array.isArray(order.items) ? order.items.length : 0} items • Ordered on {formatDate(order.created_at)}
                               </p>
                             </div>
                             <div className="flex items-center gap-3">
-                              <span className="font-bold text-foreground">₹{order.total}</span>
+                              <span className="font-bold text-foreground">₹{Number(order.total_amount).toLocaleString()}</span>
                               <ChevronRight className="w-5 h-5 text-muted-foreground" />
                             </div>
                           </div>
@@ -134,70 +208,84 @@ const ProfilePage = () => {
               ) : (
                 <Card className="border-border/50">
                   <CardContent className="p-8 text-center">
-                    <Package className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
-                    <p className="text-muted-foreground">No orders yet</p>
+                    <ShoppingBag className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+                    <p className="text-muted-foreground mb-4">No orders yet</p>
+                    <Button onClick={() => navigate("/shop")}>Start Shopping</Button>
                   </CardContent>
                 </Card>
               )}
             </TabsContent>
 
-            {/* Addresses Tab */}
-            <TabsContent value="addresses" className="space-y-4">
+            {/* Repairs Tab */}
+            <TabsContent value="repairs" className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-heading font-semibold text-foreground">Saved Addresses</h2>
-                <Button size="sm" className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  Add New
-                </Button>
+                <h2 className="text-xl font-heading font-semibold text-foreground">Repair Requests</h2>
+                <Button size="sm" onClick={() => navigate("/repair")}>New Request</Button>
               </div>
               
-              <div className="grid gap-4 sm:grid-cols-2">
-                {mockAddresses.map((address) => (
-                  <motion.div
-                    key={address.id}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                  >
-                    <Card className={`border-border/50 ${address.isDefault ? 'ring-2 ring-primary/30' : ''}`}>
-                      <CardHeader className="pb-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <CardTitle className="text-base">{address.name}</CardTitle>
-                            {address.isDefault && (
-                              <Badge variant="secondary" className="text-xs">Default</Badge>
-                            )}
-                          </div>
-                          <div className="flex gap-1">
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <p className="text-sm text-muted-foreground">{address.address}</p>
-                        <p className="text-sm text-muted-foreground">{address.city}, {address.state} - {address.pincode}</p>
-                        <p className="text-sm text-muted-foreground mt-1">Phone: {address.phone}</p>
+              {isLoading ? (
+                <div className="space-y-3">
+                  {[1, 2].map((i) => (
+                    <Card key={i} className="border-border/50 animate-pulse">
+                      <CardContent className="p-4">
+                        <div className="h-12 bg-muted rounded" />
                       </CardContent>
                     </Card>
-                  </motion.div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : repairRequests.length > 0 ? (
+                <div className="space-y-3">
+                  {repairRequests.map((repair) => (
+                    <motion.div
+                      key={repair.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                    >
+                      <Card className="border-border/50 hover:border-primary/30 transition-colors">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-3">
+                                <span className="font-semibold text-foreground">{repair.request_number}</span>
+                                <Badge variant="outline" className={getStatusColor(repair.status)}>
+                                  {repair.status}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-muted-foreground">
+                                {repair.brand} {repair.device_type} • {repair.repair_type}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                Requested on {formatDate(repair.created_at)}
+                              </p>
+                            </div>
+                            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <Card className="border-border/50">
+                  <CardContent className="p-8 text-center">
+                    <Wrench className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+                    <p className="text-muted-foreground mb-4">No repair requests yet</p>
+                    <Button onClick={() => navigate("/repair")}>Request Repair</Button>
+                  </CardContent>
+                </Card>
+              )}
             </TabsContent>
 
             {/* Wishlist Tab */}
             <TabsContent value="wishlist" className="space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-heading font-semibold text-foreground">My Wishlist</h2>
-                <span className="text-sm text-muted-foreground">{mockWishlist.length} items</span>
+                <span className="text-sm text-muted-foreground">{wishlistItems.length} items</span>
               </div>
               
-              {mockWishlist.length > 0 ? (
+              {wishlistItems.length > 0 ? (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {mockWishlist.map((item) => (
+                  {wishlistItems.map((item) => (
                     <motion.div
                       key={item.id}
                       initial={{ opacity: 0, y: 20 }}
@@ -214,6 +302,7 @@ const ProfilePage = () => {
                             variant="ghost" 
                             size="icon" 
                             className="absolute top-2 right-2 bg-background/80 hover:bg-destructive hover:text-destructive-foreground"
+                            onClick={() => removeFromWishlist(item.id)}
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -233,7 +322,8 @@ const ProfilePage = () => {
                 <Card className="border-border/50">
                   <CardContent className="p-8 text-center">
                     <Heart className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
-                    <p className="text-muted-foreground">Your wishlist is empty</p>
+                    <p className="text-muted-foreground mb-4">Your wishlist is empty</p>
+                    <Button onClick={() => navigate("/shop")}>Explore Products</Button>
                   </CardContent>
                 </Card>
               )}
