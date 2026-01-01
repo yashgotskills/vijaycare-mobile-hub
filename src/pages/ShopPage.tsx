@@ -5,6 +5,7 @@ import CouponBanner from "@/components/shop/CouponBanner";
 import BannerCarousel from "@/components/shop/BannerCarousel";
 import BrandMarquee from "@/components/shop/BrandMarquee";
 import IPhoneCases from "@/components/shop/IPhoneCases";
+import AccessoriesSection from "@/components/shop/AccessoriesSection";
 import Footer from "@/components/Footer";
 
 const ShopPage = () => {
@@ -33,6 +34,9 @@ const ShopPage = () => {
 
         {/* iPhone Cases */}
         <IPhoneCases />
+
+        {/* Accessories */}
+        <AccessoriesSection />
       </main>
 
       <Footer />
