@@ -1,5 +1,7 @@
 import { motion } from "framer-motion";
-import { Headphones, Music2, Zap, Battery, Cable, Speaker } from "lucide-react";
+import { Headphones, Music2, Zap, Battery, Cable, Speaker, ShoppingCart } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useCart } from "@/contexts/CartContext";
 
 const accessories = [
   {
@@ -59,6 +61,19 @@ const accessories = [
 ];
 
 const AccessoriesSection = () => {
+  const { addToCart } = useCart();
+
+  const handleAddToCart = (item: typeof accessories[0]) => {
+    addToCart({
+      id: item.id + 100, // Offset to avoid ID conflicts with iPhone cases
+      name: item.name,
+      price: item.price,
+      originalPrice: item.originalPrice,
+      image: item.image,
+      category: item.category,
+    });
+  };
+
   return (
     <section className="py-12 bg-background">
       <div className="container mx-auto px-4">
@@ -106,12 +121,21 @@ const AccessoriesSection = () => {
                 {item.name}
               </h3>
               
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 mb-3">
                 <span className="text-primary font-bold">₹{item.price.toLocaleString()}</span>
                 <span className="text-muted-foreground text-xs line-through">
                   ₹{item.originalPrice.toLocaleString()}
                 </span>
               </div>
+              
+              <Button
+                size="sm"
+                className="w-full bg-primary hover:bg-primary/90"
+                onClick={() => handleAddToCart(item)}
+              >
+                <ShoppingCart className="h-4 w-4 mr-1" />
+                Add to Cart
+              </Button>
             </motion.div>
           ))}
         </div>
