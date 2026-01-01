@@ -48,7 +48,12 @@ const ShopHeader = () => {
                 0
               </span>
             </Button>
-            <Button variant="ghost" size="icon" className="hidden sm:flex">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="hidden sm:flex"
+              onClick={() => navigate("/profile")}
+            >
               <User className="h-5 w-5" />
             </Button>
             <Button
@@ -90,7 +95,11 @@ const ShopHeader = () => {
                 <Heart className="h-5 w-5 mr-2" />
                 Wishlist
               </Button>
-              <Button variant="ghost" className="w-full justify-start">
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start"
+                onClick={() => { navigate("/profile"); setMobileMenuOpen(false); }}
+              >
                 <User className="h-5 w-5 mr-2" />
                 Profile
               </Button>
