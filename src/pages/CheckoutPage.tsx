@@ -1,38 +1,28 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
-  ArrowLeft, MapPin, Plus, CreditCard, Smartphone, 
-  Banknote, Check, Truck, ShieldCheck 
+  ArrowLeft, MapPin, CreditCard, Smartphone, 
+  Banknote, Check, Truck, ShieldCheck, Loader2, Navigation
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import ShopHeader from "@/components/shop/ShopHeader";
 import Footer from "@/components/Footer";
 import { useCart } from "@/contexts/CartContext";
 
-interface Address {
-  id: number;
-  name: string;
+interface DetectedAddress {
   address: string;
   city: string;
   state: string;
   pincode: string;
-  phone: string;
-  isDefault: boolean;
+  lat: number;
+  lng: number;
 }
-
-const savedAddresses: Address[] = [
-  { id: 1, name: "Home", address: "123 Main Street, Apartment 4B", city: "Mumbai", state: "Maharashtra", pincode: "400001", phone: "9876543210", isDefault: true },
-  { id: 2, name: "Office", address: "456 Business Park, Tower A", city: "Mumbai", state: "Maharashtra", pincode: "400051", phone: "9876543211", isDefault: false },
-];
 
 const paymentMethods = [
   { id: "cod", name: "Cash on Delivery", icon: Banknote, description: "Pay when you receive" },
@@ -43,37 +33,91 @@ const paymentMethods = [
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const { items, totalPrice, clearCart } = useCart();
-  const [selectedAddress, setSelectedAddress] = useState<number>(savedAddresses.find(a => a.isDefault)?.id || 1);
   const [selectedPayment, setSelectedPayment] = useState<string>("cod");
-  const [isAddingAddress, setIsAddingAddress] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   
-  const [newAddress, setNewAddress] = useState({
-    name: "",
-    address: "",
-    city: "",
-    state: "",
-    pincode: "",
-    phone: "",
-  });
+  // Location detection state
+  const [locationStatus, setLocationStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [detectedAddress, setDetectedAddress] = useState<DetectedAddress | null>(null);
 
   const subtotal = totalPrice;
   const shipping = subtotal > 500 ? 0 : 49;
   const total = subtotal + shipping;
 
-  const handleAddAddress = () => {
-    if (!newAddress.name || !newAddress.address || !newAddress.city || !newAddress.pincode || !newAddress.phone) {
-      toast.error("Please fill all required fields");
+  // Request location on mount
+  useEffect(() => {
+    requestLocation();
+  }, []);
+
+  const requestLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationStatus("error");
+      toast.error("Geolocation is not supported by your browser");
       return;
     }
-    toast.success("Address added successfully");
-    setIsAddingAddress(false);
-    setNewAddress({ name: "", address: "", city: "", state: "", pincode: "", phone: "" });
+
+    setLocationStatus("loading");
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          // Reverse geocode using OpenStreetMap Nominatim (free, no API key needed)
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`,
+            { headers: { "Accept-Language": "en" } }
+          );
+          const data = await response.json();
+
+          if (data && data.address) {
+            const addr = data.address;
+            setDetectedAddress({
+              address: [addr.road, addr.neighbourhood, addr.suburb].filter(Boolean).join(", ") || data.display_name?.split(",").slice(0, 2).join(",") || "Detected Location",
+              city: addr.city || addr.town || addr.village || addr.county || "",
+              state: addr.state || "",
+              pincode: addr.postcode || "",
+              lat: latitude,
+              lng: longitude,
+            });
+            setLocationStatus("success");
+            toast.success("Location detected successfully");
+          } else {
+            throw new Error("Could not parse address");
+          }
+        } catch {
+          // Fallback: just show coordinates
+          setDetectedAddress({
+            address: "Detected Location",
+            city: "",
+            state: "",
+            pincode: "",
+            lat: latitude,
+            lng: longitude,
+          });
+          setLocationStatus("success");
+          toast.info("Location detected (address lookup failed)");
+        }
+      },
+      (error) => {
+        setLocationStatus("error");
+        if (error.code === error.PERMISSION_DENIED) {
+          toast.error("Location permission denied. Please allow location access.");
+        } else {
+          toast.error("Could not detect your location");
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
   };
 
   const handlePlaceOrder = async () => {
     if (items.length === 0) {
       toast.error("Your cart is empty");
+      return;
+    }
+
+    if (locationStatus !== "success" || !detectedAddress) {
+      toast.error("Please allow location access to proceed");
       return;
     }
 
@@ -136,128 +180,68 @@ const CheckoutPage = () => {
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Left Column - Address & Payment */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Delivery Address */}
+              {/* Delivery Address - Auto Detected */}
               <Card className="border-border/50">
                 <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <MapPin className="w-5 h-5 text-primary" />
-                      Delivery Address
-                    </CardTitle>
-                    <Dialog open={isAddingAddress} onOpenChange={setIsAddingAddress}>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" size="sm" className="gap-1">
-                          <Plus className="w-4 h-4" />
-                          Add New
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Add New Address</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4 pt-4">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Label htmlFor="name">Address Label</Label>
-                              <Input 
-                                id="name" 
-                                placeholder="Home, Office, etc."
-                                value={newAddress.name}
-                                onChange={(e) => setNewAddress({...newAddress, name: e.target.value})}
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor="phone">Phone Number</Label>
-                              <Input 
-                                id="phone" 
-                                placeholder="10-digit number"
-                                value={newAddress.phone}
-                                onChange={(e) => setNewAddress({...newAddress, phone: e.target.value})}
-                              />
-                            </div>
-                          </div>
-                          <div>
-                            <Label htmlFor="address">Full Address</Label>
-                            <Input 
-                              id="address" 
-                              placeholder="House no., Street, Landmark"
-                              value={newAddress.address}
-                              onChange={(e) => setNewAddress({...newAddress, address: e.target.value})}
-                            />
-                          </div>
-                          <div className="grid grid-cols-3 gap-4">
-                            <div>
-                              <Label htmlFor="city">City</Label>
-                              <Input 
-                                id="city" 
-                                placeholder="City"
-                                value={newAddress.city}
-                                onChange={(e) => setNewAddress({...newAddress, city: e.target.value})}
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor="state">State</Label>
-                              <Input 
-                                id="state" 
-                                placeholder="State"
-                                value={newAddress.state}
-                                onChange={(e) => setNewAddress({...newAddress, state: e.target.value})}
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor="pincode">Pincode</Label>
-                              <Input 
-                                id="pincode" 
-                                placeholder="6-digit"
-                                value={newAddress.pincode}
-                                onChange={(e) => setNewAddress({...newAddress, pincode: e.target.value})}
-                              />
-                            </div>
-                          </div>
-                          <Button className="w-full" onClick={handleAddAddress}>
-                            Save Address
-                          </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <MapPin className="w-5 h-5 text-primary" />
+                    Delivery Address
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <RadioGroup 
-                    value={String(selectedAddress)} 
-                    onValueChange={(val) => setSelectedAddress(Number(val))}
-                    className="space-y-3"
-                  >
-                    {savedAddresses.map((addr) => (
-                      <div
-                        key={addr.id}
-                        className={`relative flex items-start gap-3 p-4 rounded-lg border transition-colors cursor-pointer ${
-                          selectedAddress === addr.id 
-                            ? 'border-primary bg-primary/5' 
-                            : 'border-border/50 hover:border-primary/30'
-                        }`}
-                        onClick={() => setSelectedAddress(addr.id)}
-                      >
-                        <RadioGroupItem value={String(addr.id)} id={`addr-${addr.id}`} className="mt-1" />
-                        <Label htmlFor={`addr-${addr.id}`} className="flex-1 cursor-pointer">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-semibold text-foreground">{addr.name}</span>
-                            {addr.isDefault && (
-                              <Badge variant="secondary" className="text-xs">Default</Badge>
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground">{addr.address}</p>
+                  {locationStatus === "loading" && (
+                    <div className="flex items-center gap-3 p-4 rounded-lg border border-border/50 bg-muted/30">
+                      <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                      <span className="text-muted-foreground">Detecting your location...</span>
+                    </div>
+                  )}
+
+                  {locationStatus === "error" && (
+                    <div className="p-4 rounded-lg border border-destructive/50 bg-destructive/5">
+                      <p className="text-sm text-destructive mb-3">
+                        Could not detect your location. Please allow location access.
+                      </p>
+                      <Button variant="outline" size="sm" onClick={requestLocation} className="gap-2">
+                        <Navigation className="w-4 h-4" />
+                        Try Again
+                      </Button>
+                    </div>
+                  )}
+
+                  {locationStatus === "success" && detectedAddress && (
+                    <div className="relative flex items-start gap-3 p-4 rounded-lg border border-primary bg-primary/5">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <Navigation className="w-5 h-5 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-semibold text-foreground">Current Location</span>
+                          <Check className="w-4 h-4 text-primary" />
+                        </div>
+                        <p className="text-sm text-muted-foreground">{detectedAddress.address}</p>
+                        {(detectedAddress.city || detectedAddress.state || detectedAddress.pincode) && (
                           <p className="text-sm text-muted-foreground">
-                            {addr.city}, {addr.state} - {addr.pincode}
+                            {[detectedAddress.city, detectedAddress.state, detectedAddress.pincode].filter(Boolean).join(", ")}
                           </p>
-                          <p className="text-sm text-muted-foreground mt-1">Phone: {addr.phone}</p>
-                        </Label>
-                        {selectedAddress === addr.id && (
-                          <Check className="w-5 h-5 text-primary absolute top-4 right-4" />
                         )}
                       </div>
-                    ))}
-                  </RadioGroup>
+                      <Button variant="ghost" size="sm" onClick={requestLocation} className="text-xs">
+                        Refresh
+                      </Button>
+                    </div>
+                  )}
+
+                  {locationStatus === "idle" && (
+                    <div className="p-4 rounded-lg border border-border/50 bg-muted/30">
+                      <p className="text-sm text-muted-foreground mb-3">
+                        We need your location to deliver your order.
+                      </p>
+                      <Button variant="outline" size="sm" onClick={requestLocation} className="gap-2">
+                        <Navigation className="w-4 h-4" />
+                        Detect My Location
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -355,7 +339,7 @@ const CheckoutPage = () => {
                     className="w-full" 
                     size="lg"
                     onClick={handlePlaceOrder}
-                    disabled={isProcessing}
+                    disabled={isProcessing || locationStatus !== "success"}
                   >
                     {isProcessing ? "Processing..." : "Place Order"}
                   </Button>
