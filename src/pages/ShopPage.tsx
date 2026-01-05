@@ -11,6 +11,8 @@ import FeaturedProducts from "@/components/shop/FeaturedProducts";
 import BestSellers from "@/components/shop/BestSellers";
 import NewArrivals from "@/components/shop/NewArrivals";
 import RepairServiceBanner from "@/components/shop/RepairServiceBanner";
+import RecentlyViewed from "@/components/shop/RecentlyViewed";
+import CompareFloatingButton from "@/components/shop/CompareFloatingButton";
 import Footer from "@/components/Footer";
 
 const ShopPage = () => {
@@ -49,6 +51,9 @@ const ShopPage = () => {
         {/* Featured Products */}
         <FeaturedProducts />
 
+        {/* Recently Viewed */}
+        <RecentlyViewed />
+
         {/* Repair Service Banner */}
         <RepairServiceBanner />
 
@@ -59,6 +64,7 @@ const ShopPage = () => {
         <NewArrivals />
       </main>
 
+      <CompareFloatingButton />
       <Footer />
     </div>
   );
