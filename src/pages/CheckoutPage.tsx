@@ -2,14 +2,23 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
-  ArrowLeft, MapPin, CreditCard, Smartphone, 
-  Banknote, Check, Truck, ShieldCheck, Loader2, Navigation
+  ArrowLeft, MapPin, CreditCard, 
+  Banknote, Check, Truck, Loader2, Navigation,
+  Home, Building, Plus, Edit2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import ShopHeader from "@/components/shop/ShopHeader";
 import Footer from "@/components/Footer";
@@ -17,14 +26,29 @@ import CouponInput from "@/components/shop/CouponInput";
 import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
 
+interface SavedAddress {
+  id: string;
+  label: string;
+  full_name: string;
+  phone: string;
+  address_line1: string;
+  address_line2: string | null;
+  city: string;
+  state: string;
+  pincode: string;
+  is_default: boolean;
+}
+
 interface DetectedAddress {
   address: string;
   city: string;
   state: string;
   pincode: string;
-  lat: number;
-  lng: number;
+  lat?: number;
+  lng?: number;
 }
+
+type AddressSource = "saved" | "detected" | "manual";
 
 const paymentMethods = [
   { id: "razorpay", name: "Pay Online", icon: CreditCard, description: "UPI, Cards, NetBanking" },
@@ -47,13 +71,53 @@ const CheckoutPage = () => {
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [couponDiscount, setCouponDiscount] = useState(0);
   
+  // Address state
+  const [addressSource, setAddressSource] = useState<AddressSource>("saved");
+  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
+  const [selectedSavedAddressId, setSelectedSavedAddressId] = useState<string | null>(null);
+  const [isLoadingAddresses, setIsLoadingAddresses] = useState(true);
+  
   // Location detection state
   const [locationStatus, setLocationStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [detectedAddress, setDetectedAddress] = useState<DetectedAddress | null>(null);
+  
+  // Manual address form
+  const [isManualDialogOpen, setIsManualDialogOpen] = useState(false);
+  const [manualAddress, setManualAddress] = useState<DetectedAddress | null>(null);
+  const [manualForm, setManualForm] = useState({
+    address: "",
+    city: "",
+    state: "",
+    pincode: "",
+  });
+
+  const userPhone = localStorage.getItem("vijaycare_user");
 
   const subtotal = totalPrice;
   const shipping = subtotal > 500 ? 0 : 49;
   const total = subtotal + shipping - couponDiscount;
+
+  // Get the active delivery address based on source
+  const getActiveAddress = (): DetectedAddress | null => {
+    if (addressSource === "saved" && selectedSavedAddressId) {
+      const saved = savedAddresses.find(a => a.id === selectedSavedAddressId);
+      if (saved) {
+        return {
+          address: `${saved.address_line1}${saved.address_line2 ? `, ${saved.address_line2}` : ""}`,
+          city: saved.city,
+          state: saved.state,
+          pincode: saved.pincode,
+        };
+      }
+    }
+    if (addressSource === "detected" && detectedAddress) {
+      return detectedAddress;
+    }
+    if (addressSource === "manual" && manualAddress) {
+      return manualAddress;
+    }
+    return null;
+  };
 
   // Load Razorpay script on mount
   useEffect(() => {
@@ -66,27 +130,58 @@ const CheckoutPage = () => {
     };
   }, []);
 
-  // Request location on mount
+  // Fetch saved addresses on mount
   useEffect(() => {
-    requestLocation();
-  }, []);
+    if (userPhone) {
+      fetchSavedAddresses();
+    } else {
+      setIsLoadingAddresses(false);
+    }
+  }, [userPhone]);
+
+  const fetchSavedAddresses = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("addresses")
+        .select("*")
+        .eq("user_phone", userPhone)
+        .order("is_default", { ascending: false })
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      
+      setSavedAddresses(data || []);
+      
+      // Auto-select default or first address
+      if (data && data.length > 0) {
+        const defaultAddr = data.find(a => a.is_default) || data[0];
+        setSelectedSavedAddressId(defaultAddr.id);
+        setAddressSource("saved");
+      } else {
+        // No saved addresses, try location detection
+        setAddressSource("detected");
+        requestLocation();
+      }
+    } catch (error) {
+      console.error("Error fetching addresses:", error);
+    } finally {
+      setIsLoadingAddresses(false);
+    }
+  };
 
   const requestLocation = () => {
     if (!navigator.geolocation) {
       setLocationStatus("error");
-      toast.error("Geolocation is not supported by your browser");
       return;
     }
 
     setLocationStatus("loading");
 
-    // Try with high accuracy first, then fallback to low accuracy
     const tryGetPosition = (highAccuracy: boolean) => {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const { latitude, longitude } = position.coords;
           try {
-            // Reverse geocode using OpenStreetMap Nominatim (free, no API key needed)
             const response = await fetch(
               `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`,
               { headers: { "Accept-Language": "en" } }
@@ -104,12 +199,13 @@ const CheckoutPage = () => {
                 lng: longitude,
               });
               setLocationStatus("success");
-              toast.success("Location detected successfully");
+              if (addressSource === "detected") {
+                toast.success("Location detected successfully");
+              }
             } else {
               throw new Error("Could not parse address");
             }
           } catch {
-            // Fallback: just show coordinates
             setDetectedAddress({
               address: "Detected Location",
               city: "",
@@ -119,35 +215,41 @@ const CheckoutPage = () => {
               lng: longitude,
             });
             setLocationStatus("success");
-            toast.info("Location detected (address lookup failed)");
           }
         },
         (error) => {
-          // If high accuracy failed due to timeout, try with low accuracy
           if (highAccuracy && (error.code === error.TIMEOUT || error.code === error.POSITION_UNAVAILABLE)) {
-            console.log("High accuracy failed, trying low accuracy...");
             tryGetPosition(false);
             return;
           }
-          
           setLocationStatus("error");
-          if (error.code === error.PERMISSION_DENIED) {
-            toast.error("Location permission denied. Please allow location access.");
-          } else if (error.code === error.TIMEOUT) {
-            toast.error("Location request timed out. Please try again.");
-          } else {
-            toast.error("Could not detect your location. Please try again.");
-          }
         },
         { 
           enableHighAccuracy: highAccuracy, 
           timeout: highAccuracy ? 15000 : 30000,
-          maximumAge: 60000 // Accept cached position up to 1 minute old
+          maximumAge: 60000
         }
       );
     };
 
     tryGetPosition(true);
+  };
+
+  const handleManualAddressSubmit = () => {
+    if (!manualForm.address || !manualForm.city || !manualForm.state || !manualForm.pincode) {
+      toast.error("Please fill all address fields");
+      return;
+    }
+    
+    setManualAddress({
+      address: manualForm.address,
+      city: manualForm.city,
+      state: manualForm.state,
+      pincode: manualForm.pincode,
+    });
+    setAddressSource("manual");
+    setIsManualDialogOpen(false);
+    toast.success("Address added successfully");
   };
 
   const handlePlaceOrder = async () => {
@@ -156,12 +258,12 @@ const CheckoutPage = () => {
       return;
     }
 
-    if (locationStatus !== "success" || !detectedAddress) {
-      toast.error("Please allow location access to proceed");
+    const activeAddress = getActiveAddress();
+    if (!activeAddress) {
+      toast.error("Please select or enter a delivery address");
       return;
     }
 
-    const userPhone = localStorage.getItem("vijaycare_user");
     if (!userPhone) {
       toast.error("Please login to place order");
       navigate("/");
@@ -171,7 +273,6 @@ const CheckoutPage = () => {
     setIsProcessing(true);
     
     try {
-      // Save order to database first
       const orderItems = items.map(item => ({
         id: item.id,
         name: item.name,
@@ -181,27 +282,25 @@ const CheckoutPage = () => {
       }));
 
       const { data: orderData, error: orderError } = await supabase.from("orders").insert({
-        order_number: "", // Will be generated by trigger
+        order_number: "",
         user_phone: userPhone,
         items: orderItems,
         total_amount: total,
         status: "Processing",
         delivery_address: {
-          address: detectedAddress.address,
-          city: detectedAddress.city,
-          state: detectedAddress.state,
-          pincode: detectedAddress.pincode,
-          lat: detectedAddress.lat,
-          lng: detectedAddress.lng
+          address: activeAddress.address,
+          city: activeAddress.city,
+          state: activeAddress.state,
+          pincode: activeAddress.pincode,
+          lat: activeAddress.lat,
+          lng: activeAddress.lng
         },
         payment_method: selectedPayment
       }).select().single();
 
       if (orderError) throw orderError;
 
-      // If Razorpay payment selected
       if (selectedPayment === "razorpay") {
-        // Create Razorpay order
         const { data: razorpayData, error: rzError } = await supabase.functions.invoke(
           "create-razorpay-order",
           {
@@ -218,7 +317,6 @@ const CheckoutPage = () => {
           throw new Error("Failed to create payment order");
         }
 
-        // Open Razorpay checkout
         const options = {
           key: razorpayData.keyId,
           amount: razorpayData.amount,
@@ -227,7 +325,6 @@ const CheckoutPage = () => {
           description: "Order Payment",
           order_id: razorpayData.orderId,
           handler: async function (response: any) {
-            // Verify payment
             const { data: verifyData, error: verifyError } = await supabase.functions.invoke(
               "verify-razorpay-payment",
               {
@@ -245,7 +342,6 @@ const CheckoutPage = () => {
               return;
             }
 
-            // Success!
             clearCart();
             toast.success("Payment successful! Order confirmed.");
             navigate(`/track-order/${orderData.order_number}`);
@@ -266,11 +362,9 @@ const CheckoutPage = () => {
 
         const razorpay = new window.Razorpay(options);
         razorpay.open();
-        return; // Don't set processing to false yet
+        return;
       }
 
-      // COD flow
-      // Try to send push notification (non-blocking)
       supabase.functions.invoke("send-push-notification", {
         body: {
           user_phone: userPhone,
@@ -318,6 +412,8 @@ const CheckoutPage = () => {
     );
   }
 
+  const activeAddress = getActiveAddress();
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <ShopHeader />
@@ -339,67 +435,198 @@ const CheckoutPage = () => {
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Left Column - Address & Payment */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Delivery Address - Auto Detected */}
+              {/* Delivery Address */}
               <Card className="border-border/50">
                 <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <MapPin className="w-5 h-5 text-primary" />
-                    Delivery Address
-                  </CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <MapPin className="w-5 h-5 text-primary" />
+                      Delivery Address
+                    </CardTitle>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => navigate("/addresses")}
+                      className="gap-1"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                      Manage
+                    </Button>
+                  </div>
                 </CardHeader>
-                <CardContent>
-                  {locationStatus === "loading" && (
+                <CardContent className="space-y-4">
+                  {isLoadingAddresses ? (
                     <div className="flex items-center gap-3 p-4 rounded-lg border border-border/50 bg-muted/30">
                       <Loader2 className="w-5 h-5 animate-spin text-primary" />
-                      <span className="text-muted-foreground">Detecting your location...</span>
+                      <span className="text-muted-foreground">Loading addresses...</span>
                     </div>
-                  )}
-
-                  {locationStatus === "error" && (
-                    <div className="p-4 rounded-lg border border-destructive/50 bg-destructive/5">
-                      <p className="text-sm text-destructive mb-3">
-                        Could not detect your location. Please allow location access.
-                      </p>
-                      <Button variant="outline" size="sm" onClick={requestLocation} className="gap-2">
-                        <Navigation className="w-4 h-4" />
-                        Try Again
-                      </Button>
-                    </div>
-                  )}
-
-                  {locationStatus === "success" && detectedAddress && (
-                    <div className="relative flex items-start gap-3 p-4 rounded-lg border border-primary bg-primary/5">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <Navigation className="w-5 h-5 text-primary" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-semibold text-foreground">Current Location</span>
-                          <Check className="w-4 h-4 text-primary" />
+                  ) : (
+                    <>
+                      {/* Saved Addresses */}
+                      {savedAddresses.length > 0 && (
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-muted-foreground">Saved Addresses</Label>
+                          <RadioGroup
+                            value={addressSource === "saved" ? selectedSavedAddressId || "" : ""}
+                            onValueChange={(id) => {
+                              setSelectedSavedAddressId(id);
+                              setAddressSource("saved");
+                            }}
+                            className="space-y-2"
+                          >
+                            {savedAddresses.map((addr) => (
+                              <div
+                                key={addr.id}
+                                className={`relative flex items-start gap-3 p-4 rounded-lg border transition-colors cursor-pointer ${
+                                  addressSource === "saved" && selectedSavedAddressId === addr.id
+                                    ? 'border-primary bg-primary/5'
+                                    : 'border-border/50 hover:border-primary/30'
+                                }`}
+                                onClick={() => {
+                                  setSelectedSavedAddressId(addr.id);
+                                  setAddressSource("saved");
+                                }}
+                              >
+                                <RadioGroupItem value={addr.id} id={addr.id} className="mt-1" />
+                                <div className={`p-2 rounded-lg ${
+                                  addr.label === "home" 
+                                    ? "bg-blue-500/10 text-blue-600" 
+                                    : "bg-orange-500/10 text-orange-600"
+                                }`}>
+                                  {addr.label === "home" ? <Home className="h-4 w-4" /> : <Building className="h-4 w-4" />}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="font-semibold text-foreground text-sm">{addr.full_name}</span>
+                                    <span className="text-xs bg-muted px-2 py-0.5 rounded capitalize">{addr.label}</span>
+                                    {addr.is_default && (
+                                      <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">Default</span>
+                                    )}
+                                  </div>
+                                  <p className="text-sm text-muted-foreground line-clamp-1">
+                                    {addr.address_line1}{addr.address_line2 && `, ${addr.address_line2}`}
+                                  </p>
+                                  <p className="text-sm text-muted-foreground">
+                                    {addr.city}, {addr.state} - {addr.pincode}
+                                  </p>
+                                </div>
+                                {addressSource === "saved" && selectedSavedAddressId === addr.id && (
+                                  <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                                )}
+                              </div>
+                            ))}
+                          </RadioGroup>
                         </div>
-                        <p className="text-sm text-muted-foreground">{detectedAddress.address}</p>
-                        {(detectedAddress.city || detectedAddress.state || detectedAddress.pincode) && (
-                          <p className="text-sm text-muted-foreground">
-                            {[detectedAddress.city, detectedAddress.state, detectedAddress.pincode].filter(Boolean).join(", ")}
-                          </p>
+                      )}
+
+                      {/* Use Current Location */}
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-muted-foreground">Or use current location</Label>
+                        <div
+                          className={`relative flex items-start gap-3 p-4 rounded-lg border transition-colors cursor-pointer ${
+                            addressSource === "detected" && locationStatus === "success"
+                              ? 'border-primary bg-primary/5'
+                              : 'border-border/50 hover:border-primary/30'
+                          }`}
+                          onClick={() => {
+                            if (locationStatus === "success") {
+                              setAddressSource("detected");
+                            } else {
+                              requestLocation();
+                              setAddressSource("detected");
+                            }
+                          }}
+                        >
+                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            {locationStatus === "loading" ? (
+                              <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                            ) : (
+                              <Navigation className="w-5 h-5 text-primary" />
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            {locationStatus === "loading" && (
+                              <span className="text-muted-foreground">Detecting your location...</span>
+                            )}
+                            {locationStatus === "error" && (
+                              <div>
+                                <p className="text-sm text-destructive mb-1">Could not detect location</p>
+                                <Button variant="link" size="sm" onClick={(e) => { e.stopPropagation(); requestLocation(); }} className="p-0 h-auto text-primary">
+                                  Try again
+                                </Button>
+                              </div>
+                            )}
+                            {locationStatus === "success" && detectedAddress && (
+                              <>
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="font-semibold text-foreground text-sm">Current Location</span>
+                                </div>
+                                <p className="text-sm text-muted-foreground">{detectedAddress.address}</p>
+                                {(detectedAddress.city || detectedAddress.state || detectedAddress.pincode) && (
+                                  <p className="text-sm text-muted-foreground">
+                                    {[detectedAddress.city, detectedAddress.state, detectedAddress.pincode].filter(Boolean).join(", ")}
+                                  </p>
+                                )}
+                              </>
+                            )}
+                            {locationStatus === "idle" && (
+                              <span className="text-muted-foreground">Click to detect your location</span>
+                            )}
+                          </div>
+                          {addressSource === "detected" && locationStatus === "success" && (
+                            <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Manual Address Entry */}
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-muted-foreground">Or enter address manually</Label>
+                        {manualAddress ? (
+                          <div
+                            className={`relative flex items-start gap-3 p-4 rounded-lg border transition-colors cursor-pointer ${
+                              addressSource === "manual"
+                                ? 'border-primary bg-primary/5'
+                                : 'border-border/50 hover:border-primary/30'
+                            }`}
+                            onClick={() => setAddressSource("manual")}
+                          >
+                            <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center flex-shrink-0">
+                              <MapPin className="w-5 h-5 text-green-600" />
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="font-semibold text-foreground text-sm">Manual Address</span>
+                              </div>
+                              <p className="text-sm text-muted-foreground">{manualAddress.address}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {[manualAddress.city, manualAddress.state, manualAddress.pincode].filter(Boolean).join(", ")}
+                              </p>
+                            </div>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={(e) => { e.stopPropagation(); setIsManualDialogOpen(true); }}
+                              className="text-xs"
+                            >
+                              Edit
+                            </Button>
+                            {addressSource === "manual" && (
+                              <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                            )}
+                          </div>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            className="w-full gap-2 justify-start"
+                            onClick={() => setIsManualDialogOpen(true)}
+                          >
+                            <Plus className="w-4 h-4" />
+                            Enter address manually
+                          </Button>
                         )}
                       </div>
-                      <Button variant="ghost" size="sm" onClick={requestLocation} className="text-xs">
-                        Refresh
-                      </Button>
-                    </div>
-                  )}
-
-                  {locationStatus === "idle" && (
-                    <div className="p-4 rounded-lg border border-border/50 bg-muted/30">
-                      <p className="text-sm text-muted-foreground mb-3">
-                        We need your location to deliver your order.
-                      </p>
-                      <Button variant="outline" size="sm" onClick={requestLocation} className="gap-2">
-                        <Navigation className="w-4 h-4" />
-                        Detect My Location
-                      </Button>
-                    </div>
+                    </>
                   )}
                 </CardContent>
               </Card>
@@ -476,60 +703,79 @@ const CheckoutPage = () => {
                   {/* Coupon */}
                   <CouponInput
                     subtotal={subtotal}
-                    appliedCode={appliedCoupon}
-                    appliedDiscount={couponDiscount}
                     onApply={(discount, code) => {
-                      setCouponDiscount(discount);
                       setAppliedCoupon(code);
+                      setCouponDiscount(discount);
                     }}
                     onRemove={() => {
-                      setCouponDiscount(0);
                       setAppliedCoupon(null);
+                      setCouponDiscount(0);
                     }}
+                    appliedCode={appliedCoupon}
+                    appliedDiscount={couponDiscount}
                   />
 
                   <Separator />
 
                   {/* Pricing */}
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Subtotal</span>
-                      <span className="font-medium text-foreground">₹{subtotal.toLocaleString()}</span>
+                      <span className="text-foreground">₹{subtotal.toLocaleString()}</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Shipping</span>
-                      <span className="font-medium text-foreground">
-                        {shipping === 0 ? <span className="text-green-600">FREE</span> : `₹${shipping}`}
+                      <span className={shipping === 0 ? "text-green-600" : "text-foreground"}>
+                        {shipping === 0 ? "Free" : `₹${shipping}`}
                       </span>
                     </div>
                     {couponDiscount > 0 && (
-                      <div className="flex justify-between text-green-600">
-                        <span>Coupon Discount</span>
-                        <span>-₹{couponDiscount.toLocaleString()}</span>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Coupon Discount</span>
+                        <span className="text-green-600">-₹{couponDiscount.toLocaleString()}</span>
                       </div>
                     )}
                   </div>
 
                   <Separator />
 
-                  <div className="flex justify-between text-lg font-bold">
+                  <div className="flex justify-between font-semibold">
                     <span className="text-foreground">Total</span>
-                    <span className="text-foreground">₹{total.toLocaleString()}</span>
+                    <span className="text-foreground text-lg">₹{total.toLocaleString()}</span>
                   </div>
 
-                  <Button 
-                    className="w-full" 
+                  {/* Delivery Address Summary */}
+                  {activeAddress && (
+                    <div className="p-3 bg-muted/30 rounded-lg">
+                      <p className="text-xs text-muted-foreground mb-1">Delivering to:</p>
+                      <p className="text-sm text-foreground line-clamp-2">{activeAddress.address}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {[activeAddress.city, activeAddress.pincode].filter(Boolean).join(" - ")}
+                      </p>
+                    </div>
+                  )}
+
+                  <Button
+                    className="w-full"
                     size="lg"
                     onClick={handlePlaceOrder}
-                    disabled={isProcessing || locationStatus !== "success"}
+                    disabled={isProcessing || !activeAddress}
                   >
-                    {isProcessing ? "Processing..." : "Place Order"}
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      `Place Order • ₹${total.toLocaleString()}`
+                    )}
                   </Button>
 
-                  <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                    <ShieldCheck className="w-4 h-4" />
-                    <span>Secure checkout with SSL encryption</span>
-                  </div>
+                  {!activeAddress && (
+                    <p className="text-xs text-destructive text-center">
+                      Please select a delivery address
+                    </p>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -538,6 +784,68 @@ const CheckoutPage = () => {
       </main>
 
       <Footer />
+
+      {/* Manual Address Dialog */}
+      <Dialog open={isManualDialogOpen} onOpenChange={setIsManualDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Enter Delivery Address</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div>
+              <Label htmlFor="manual_address">Full Address *</Label>
+              <Textarea
+                id="manual_address"
+                value={manualForm.address}
+                onChange={(e) => setManualForm({ ...manualForm, address: e.target.value })}
+                placeholder="House/Flat No., Building, Street, Landmark"
+                rows={2}
+                className="mt-1"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="manual_city">City *</Label>
+                <Input
+                  id="manual_city"
+                  value={manualForm.city}
+                  onChange={(e) => setManualForm({ ...manualForm, city: e.target.value })}
+                  placeholder="City"
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="manual_state">State *</Label>
+                <Input
+                  id="manual_state"
+                  value={manualForm.state}
+                  onChange={(e) => setManualForm({ ...manualForm, state: e.target.value })}
+                  placeholder="State"
+                  className="mt-1"
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="manual_pincode">Pincode *</Label>
+              <Input
+                id="manual_pincode"
+                value={manualForm.pincode}
+                onChange={(e) => setManualForm({ ...manualForm, pincode: e.target.value })}
+                placeholder="Enter pincode"
+                className="mt-1"
+              />
+            </div>
+            <div className="flex gap-3 pt-2">
+              <Button onClick={handleManualAddressSubmit} className="flex-1">
+                Use This Address
+              </Button>
+              <Button variant="outline" onClick={() => setIsManualDialogOpen(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
