@@ -80,56 +80,74 @@ const CheckoutPage = () => {
 
     setLocationStatus("loading");
 
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords;
-        try {
-          // Reverse geocode using OpenStreetMap Nominatim (free, no API key needed)
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`,
-            { headers: { "Accept-Language": "en" } }
-          );
-          const data = await response.json();
+    // Try with high accuracy first, then fallback to low accuracy
+    const tryGetPosition = (highAccuracy: boolean) => {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          try {
+            // Reverse geocode using OpenStreetMap Nominatim (free, no API key needed)
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`,
+              { headers: { "Accept-Language": "en" } }
+            );
+            const data = await response.json();
 
-          if (data && data.address) {
-            const addr = data.address;
+            if (data && data.address) {
+              const addr = data.address;
+              setDetectedAddress({
+                address: [addr.road, addr.neighbourhood, addr.suburb].filter(Boolean).join(", ") || data.display_name?.split(",").slice(0, 2).join(",") || "Detected Location",
+                city: addr.city || addr.town || addr.village || addr.county || "",
+                state: addr.state || "",
+                pincode: addr.postcode || "",
+                lat: latitude,
+                lng: longitude,
+              });
+              setLocationStatus("success");
+              toast.success("Location detected successfully");
+            } else {
+              throw new Error("Could not parse address");
+            }
+          } catch {
+            // Fallback: just show coordinates
             setDetectedAddress({
-              address: [addr.road, addr.neighbourhood, addr.suburb].filter(Boolean).join(", ") || data.display_name?.split(",").slice(0, 2).join(",") || "Detected Location",
-              city: addr.city || addr.town || addr.village || addr.county || "",
-              state: addr.state || "",
-              pincode: addr.postcode || "",
+              address: "Detected Location",
+              city: "",
+              state: "",
+              pincode: "",
               lat: latitude,
               lng: longitude,
             });
             setLocationStatus("success");
-            toast.success("Location detected successfully");
-          } else {
-            throw new Error("Could not parse address");
+            toast.info("Location detected (address lookup failed)");
           }
-        } catch {
-          // Fallback: just show coordinates
-          setDetectedAddress({
-            address: "Detected Location",
-            city: "",
-            state: "",
-            pincode: "",
-            lat: latitude,
-            lng: longitude,
-          });
-          setLocationStatus("success");
-          toast.info("Location detected (address lookup failed)");
+        },
+        (error) => {
+          // If high accuracy failed due to timeout, try with low accuracy
+          if (highAccuracy && (error.code === error.TIMEOUT || error.code === error.POSITION_UNAVAILABLE)) {
+            console.log("High accuracy failed, trying low accuracy...");
+            tryGetPosition(false);
+            return;
+          }
+          
+          setLocationStatus("error");
+          if (error.code === error.PERMISSION_DENIED) {
+            toast.error("Location permission denied. Please allow location access.");
+          } else if (error.code === error.TIMEOUT) {
+            toast.error("Location request timed out. Please try again.");
+          } else {
+            toast.error("Could not detect your location. Please try again.");
+          }
+        },
+        { 
+          enableHighAccuracy: highAccuracy, 
+          timeout: highAccuracy ? 15000 : 30000,
+          maximumAge: 60000 // Accept cached position up to 1 minute old
         }
-      },
-      (error) => {
-        setLocationStatus("error");
-        if (error.code === error.PERMISSION_DENIED) {
-          toast.error("Location permission denied. Please allow location access.");
-        } else {
-          toast.error("Could not detect your location");
-        }
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
+      );
+    };
+
+    tryGetPosition(true);
   };
 
   const handlePlaceOrder = async () => {
