@@ -1,5 +1,6 @@
 import { Phone, Mail, MapPin, Facebook, Instagram, Twitter, Youtube } from "lucide-react";
 import logo from "@/assets/logo.png";
+import shopPhoto from "@/assets/shop-photo.webp";
 
 const Footer = () => {
   const quickLinks = [
@@ -95,23 +96,30 @@ const Footer = () => {
           {/* Contact */}
           <div>
             <h4 className="font-display font-bold text-lg mb-6">Contact Info</h4>
+            <div className="mb-4">
+              <img 
+                src={shopPhoto} 
+                alt="Vijay Care Shop" 
+                className="w-full h-32 object-cover rounded-lg"
+              />
+            </div>
             <ul className="space-y-4">
               <li className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
                 <span className="text-background/70">
-                  123 Main Street, City Center, Vijayawada, AP 520001
+                  Shipra Mall, Krishna Apra Shopping Plaza, Ghaziabad, Uttar Pradesh 201014
                 </span>
               </li>
               <li className="flex items-center gap-3">
                 <Phone className="w-5 h-5 text-accent flex-shrink-0" />
-                <a href="tel:+919876543210" className="text-background/70 hover:text-accent">
-                  +91 98765 43210
+                <a href="tel:+918595355469" className="text-background/70 hover:text-accent">
+                  +91 85953 55469
                 </a>
               </li>
               <li className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-accent flex-shrink-0" />
-                <a href="mailto:info@vijayacare.com" className="text-background/70 hover:text-accent">
-                  info@vijayacare.com
+                <a href="mailto:vijaycare010@gmail.com" className="text-background/70 hover:text-accent">
+                  vijaycare010@gmail.com
                 </a>
               </li>
             </ul>
