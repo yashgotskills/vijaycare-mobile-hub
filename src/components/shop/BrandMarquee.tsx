@@ -5,14 +5,14 @@ import realmeLogo from "@/assets/brands/realme.svg";
 import vivoLogo from "@/assets/brands/vivo.svg";
 
 const brands = [
-  { name: "Apple", logo: "https://logo.clearbit.com/apple.com?size=128" },
-  { name: "Samsung", logo: "https://logo.clearbit.com/samsung.com?size=128" },
-  { name: "OnePlus", logo: "https://logo.clearbit.com/oneplus.com?size=128" },
-  { name: "Xiaomi", logo: "https://logo.clearbit.com/mi.com?size=128" },
+  { name: "Apple", logo: "https://cdn.simpleicons.org/apple/000000" },
+  { name: "Samsung", logo: "https://cdn.simpleicons.org/samsung/1428A0" },
+  { name: "OnePlus", logo: "https://cdn.simpleicons.org/oneplus/F5010C" },
+  { name: "Xiaomi", logo: "https://cdn.simpleicons.org/xiaomi/FF6900" },
   { name: "Oppo", logo: oppoLogo },
   { name: "Vivo", logo: vivoLogo },
   { name: "Realme", logo: realmeLogo },
-  { name: "Google", logo: "https://logo.clearbit.com/google.com?size=128" },
+  { name: "Google", logo: "https://cdn.simpleicons.org/google/4285F4" },
   { name: "Nothing", logo: nothingLogo },
   { name: "Motorola", logo: motorolaLogo },
 ];
