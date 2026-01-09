@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Package, RefreshCw, Bell } from "lucide-react";
+import { ArrowLeft, Package, RefreshCw, Bell, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
@@ -13,6 +13,7 @@ import OrdersTab from "@/components/admin/OrdersTab";
 import RepairsTab from "@/components/admin/RepairsTab";
 import ProductsTab from "@/components/admin/ProductsTab";
 import CategoriesTab from "@/components/admin/CategoriesTab";
+import UsersTab from "@/components/admin/UsersTab";
 import type { Product, Category } from "@/types/product";
 
 interface Order {
@@ -265,7 +266,7 @@ const AdminPage = () => {
             setActiveTab(val);
             if (val === "orders") setNewOrdersCount(0);
           }} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-6">
+            <TabsList className="grid w-full grid-cols-5 mb-6">
               <TabsTrigger value="orders" className="gap-2 relative">
                 Orders ({orders.length})
                 {newOrdersCount > 0 && (
@@ -282,6 +283,10 @@ const AdminPage = () => {
               </TabsTrigger>
               <TabsTrigger value="categories" className="gap-2">
                 Categories ({categories.length})
+              </TabsTrigger>
+              <TabsTrigger value="users" className="gap-2">
+                <Users className="w-4 h-4" />
+                Users
               </TabsTrigger>
             </TabsList>
 
@@ -315,6 +320,13 @@ const AdminPage = () => {
                 categories={categories}
                 loading={loading} 
                 onRefresh={fetchCategories} 
+              />
+            </TabsContent>
+
+            <TabsContent value="users">
+              <UsersTab 
+                loading={loading} 
+                onRefresh={fetchAll} 
               />
             </TabsContent>
           </Tabs>
