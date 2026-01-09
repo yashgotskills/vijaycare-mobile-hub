@@ -58,13 +58,26 @@ const ProductsTab = ({ products, categories, loading, onRefresh }: ProductsTabPr
   const handleDelete = async () => {
     if (!deleteProduct) return;
     
+    const userPhone = localStorage.getItem("vijaycare_user");
+    
+    // Set user context for RLS policy
+    try {
+      await supabase.rpc("set_config", {
+        setting_name: "app.current_user_phone",
+        new_value: userPhone || "",
+      }).single();
+    } catch (e) {
+      // Ignore if RPC doesn't exist
+    }
+    
     const { error } = await supabase
       .from("products")
       .delete()
       .eq("id", deleteProduct.id);
 
     if (error) {
-      toast.error("Failed to delete product");
+      console.error("Delete error:", error);
+      toast.error("Failed to delete product: " + error.message);
     } else {
       toast.success("Product deleted successfully");
       onRefresh();

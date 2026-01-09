@@ -42,8 +42,8 @@ const Header = () => {
               <div className="w-10 h-10 rounded-xl bg-primary-gradient flex items-center justify-center">
                 <span className="text-primary-foreground font-bold text-xl">V</span>
               </div>
-              <span className="font-display font-bold text-xl text-foreground">
-                Vijaya<span className="text-gradient">Care</span>
+              <span className="font-display font-bold text-lg sm:text-xl text-foreground">
+                Vijay<span className="text-gradient">Care</span>
               </span>
             </a>
 
