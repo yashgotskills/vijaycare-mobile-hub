@@ -536,6 +536,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      set_user_context: { Args: { user_phone: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "user"
