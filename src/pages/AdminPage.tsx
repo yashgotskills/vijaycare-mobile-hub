@@ -1,33 +1,18 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { 
-  ArrowLeft, Package, Users, ShoppingCart, TrendingUp,
-  Search, Filter, ChevronDown, RefreshCw
-} from "lucide-react";
+import { ArrowLeft, Package, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import ShopHeader from "@/components/shop/ShopHeader";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
+import AdminStats from "@/components/admin/AdminStats";
+import OrdersTab from "@/components/admin/OrdersTab";
+import RepairsTab from "@/components/admin/RepairsTab";
+import ProductsTab from "@/components/admin/ProductsTab";
+import type { Product, Category } from "@/types/product";
 
 interface Order {
   id: string;
@@ -40,36 +25,39 @@ interface Order {
   created_at: string;
 }
 
-const statusOptions = [
-  "Processing",
-  "Confirmed",
-  "Shipped",
-  "Out for Delivery",
-  "Delivered",
-  "Cancelled"
-];
-
-const statusColors: Record<string, string> = {
-  "Processing": "bg-yellow-500",
-  "Confirmed": "bg-orange-500",
-  "Shipped": "bg-purple-500",
-  "Out for Delivery": "bg-blue-500",
-  "Delivered": "bg-green-500",
-  "Cancelled": "bg-red-500"
-};
+interface RepairRequest {
+  id: string;
+  request_number: string;
+  user_phone: string;
+  customer_name: string;
+  device_type: string;
+  brand: string;
+  model: string | null;
+  repair_type: string;
+  issue_description: string | null;
+  address: string;
+  preferred_date: string;
+  preferred_time: string;
+  status: string;
+  created_at: string;
+}
 
 const AdminPage = () => {
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [repairs, setRepairs] = useState<RepairRequest[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [activeTab, setActiveTab] = useState("orders");
   const [stats, setStats] = useState({
     totalOrders: 0,
     totalRevenue: 0,
     pendingOrders: 0,
-    deliveredOrders: 0
+    deliveredOrders: 0,
+    totalRepairs: 0,
+    pendingRepairs: 0
   });
 
   useEffect(() => {
@@ -84,7 +72,6 @@ const AdminPage = () => {
       return;
     }
 
-    // Check if user is admin
     const { data: roleData } = await supabase
       .from("user_roles")
       .select("role")
@@ -99,68 +86,84 @@ const AdminPage = () => {
     }
 
     setIsAdmin(true);
-    fetchOrders();
-    fetchStats();
+    fetchAll();
+  };
+
+  const fetchAll = async () => {
+    setLoading(true);
+    await Promise.all([
+      fetchOrders(),
+      fetchRepairs(),
+      fetchProducts(),
+      fetchCategories(),
+      fetchStats()
+    ]);
+    setLoading(false);
   };
 
   const fetchOrders = async () => {
-    setLoading(true);
     const { data, error } = await supabase
       .from("orders")
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (error) {
-      toast.error("Failed to fetch orders");
-    } else {
-      setOrders(data || []);
-    }
-    setLoading(false);
+    if (!error) setOrders(data || []);
+  };
+
+  const fetchRepairs = async () => {
+    const { data, error } = await supabase
+      .from("repair_requests")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (!error) setRepairs(data || []);
+  };
+
+  const fetchProducts = async () => {
+    const { data, error } = await supabase
+      .from("products")
+      .select(`*, category:categories(*), brand:brands(*)`)
+      .order("created_at", { ascending: false });
+
+    if (!error) setProducts((data as unknown as Product[]) || []);
+  };
+
+  const fetchCategories = async () => {
+    const { data, error } = await supabase
+      .from("categories")
+      .select("*")
+      .order("name");
+
+    if (!error) setCategories(data || []);
   };
 
   const fetchStats = async () => {
-    const { data: allOrders } = await supabase
-      .from("orders")
-      .select("status, total_amount");
+    const [ordersResult, repairsResult] = await Promise.all([
+      supabase.from("orders").select("status, total_amount"),
+      supabase.from("repair_requests").select("status")
+    ]);
 
-    if (allOrders) {
-      const totalRevenue = allOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
-      const pendingOrders = allOrders.filter(o => 
-        ["Processing", "Confirmed", "Shipped", "Out for Delivery"].includes(o.status)
-      ).length;
-      const deliveredOrders = allOrders.filter(o => o.status === "Delivered").length;
+    const allOrders = ordersResult.data || [];
+    const allRepairs = repairsResult.data || [];
 
-      setStats({
-        totalOrders: allOrders.length,
-        totalRevenue,
-        pendingOrders,
-        deliveredOrders
-      });
-    }
+    const totalRevenue = allOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+    const pendingOrders = allOrders.filter(o => 
+      ["Processing", "Confirmed", "Shipped", "Out for Delivery"].includes(o.status)
+    ).length;
+    const deliveredOrders = allOrders.filter(o => o.status === "Delivered").length;
+    const pendingRepairs = allRepairs.filter(r => 
+      ["Pending", "Confirmed", "In Progress"].includes(r.status)
+    ).length;
+
+    setStats({
+      totalOrders: allOrders.length,
+      totalRevenue,
+      pendingOrders,
+      deliveredOrders,
+      totalRepairs: allRepairs.length,
+      pendingRepairs
+    });
   };
-
-  const updateOrderStatus = async (orderId: string, newStatus: string) => {
-    const { error } = await supabase
-      .from("orders")
-      .update({ status: newStatus, updated_at: new Date().toISOString() })
-      .eq("id", orderId);
-
-    if (error) {
-      toast.error("Failed to update status");
-    } else {
-      toast.success(`Order status updated to ${newStatus}`);
-      fetchOrders();
-      fetchStats();
-    }
-  };
-
-  const filteredOrders = orders.filter(order => {
-    const matchesSearch = 
-      order.order_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.user_phone.includes(searchTerm);
-    const matchesStatus = filterStatus === "all" || order.status === filterStatus;
-    return matchesSearch && matchesStatus;
-  });
 
   if (!isAdmin) {
     return (
@@ -191,176 +194,52 @@ const AdminPage = () => {
                 Admin Dashboard
               </h1>
             </div>
-            <Button variant="outline" onClick={fetchOrders} className="gap-2">
+            <Button variant="outline" onClick={fetchAll} className="gap-2">
               <RefreshCw className="w-4 h-4" />
               Refresh
             </Button>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <Card className="border-border/50">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-full bg-primary/10">
-                    <ShoppingCart className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total Orders</p>
-                    <p className="text-2xl font-bold text-foreground">{stats.totalOrders}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          <AdminStats stats={stats} />
 
-            <Card className="border-border/50">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-full bg-green-500/10">
-                    <TrendingUp className="w-6 h-6 text-green-500" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total Revenue</p>
-                    <p className="text-2xl font-bold text-foreground">₹{stats.totalRevenue.toLocaleString()}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-6">
+              <TabsTrigger value="orders" className="gap-2">
+                Orders ({orders.length})
+              </TabsTrigger>
+              <TabsTrigger value="repairs" className="gap-2">
+                Repairs ({repairs.length})
+              </TabsTrigger>
+              <TabsTrigger value="products" className="gap-2">
+                Products ({products.length})
+              </TabsTrigger>
+            </TabsList>
 
-            <Card className="border-border/50">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-full bg-yellow-500/10">
-                    <Package className="w-6 h-6 text-yellow-500" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Pending</p>
-                    <p className="text-2xl font-bold text-foreground">{stats.pendingOrders}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <TabsContent value="orders">
+              <OrdersTab 
+                orders={orders} 
+                loading={loading} 
+                onRefresh={() => { fetchOrders(); fetchStats(); }} 
+              />
+            </TabsContent>
 
-            <Card className="border-border/50">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-full bg-blue-500/10">
-                    <Users className="w-6 h-6 text-blue-500" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Delivered</p>
-                    <p className="text-2xl font-bold text-foreground">{stats.deliveredOrders}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+            <TabsContent value="repairs">
+              <RepairsTab 
+                repairs={repairs} 
+                loading={loading} 
+                onRefresh={() => { fetchRepairs(); fetchStats(); }} 
+              />
+            </TabsContent>
 
-          {/* Filters */}
-          <Card className="mb-6 border-border/50">
-            <CardContent className="p-4">
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search by order number or phone..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-                <Select value={filterStatus} onValueChange={setFilterStatus}>
-                  <SelectTrigger className="w-full md:w-48">
-                    <Filter className="w-4 h-4 mr-2" />
-                    <SelectValue placeholder="Filter by status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    {statusOptions.map(status => (
-                      <SelectItem key={status} value={status}>{status}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Orders Table */}
-          <Card className="border-border/50">
-            <CardHeader>
-              <CardTitle>Orders ({filteredOrders.length})</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="text-center py-8">
-                  <RefreshCw className="w-8 h-8 mx-auto text-muted-foreground animate-spin" />
-                </div>
-              ) : filteredOrders.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  No orders found
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Order #</TableHead>
-                        <TableHead>Customer</TableHead>
-                        <TableHead>Items</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Payment</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Action</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredOrders.map((order) => (
-                        <TableRow key={order.id}>
-                          <TableCell className="font-mono text-sm">
-                            {order.order_number}
-                          </TableCell>
-                          <TableCell>{order.user_phone}</TableCell>
-                          <TableCell>{order.items?.length || 0} items</TableCell>
-                          <TableCell className="font-semibold">
-                            ₹{order.total_amount?.toLocaleString()}
-                          </TableCell>
-                          <TableCell className="capitalize">
-                            {order.payment_method || "COD"}
-                          </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
-                            {new Date(order.created_at).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell>
-                            <Badge className={`${statusColors[order.status]} text-white`}>
-                              {order.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Select 
-                              value={order.status} 
-                              onValueChange={(value) => updateOrderStatus(order.id, value)}
-                            >
-                              <SelectTrigger className="w-40">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {statusOptions.map(status => (
-                                  <SelectItem key={status} value={status}>
-                                    {status}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+            <TabsContent value="products">
+              <ProductsTab 
+                products={products}
+                categories={categories}
+                loading={loading} 
+                onRefresh={fetchProducts} 
+              />
+            </TabsContent>
+          </Tabs>
         </motion.div>
       </main>
 
