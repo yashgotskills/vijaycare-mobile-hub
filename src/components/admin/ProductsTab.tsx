@@ -61,13 +61,8 @@ const ProductsTab = ({ products, categories, loading, onRefresh }: ProductsTabPr
     const userPhone = localStorage.getItem("vijaycare_user");
     
     // Set user context for RLS policy
-    try {
-      await supabase.rpc("set_config", {
-        setting_name: "app.current_user_phone",
-        new_value: userPhone || "",
-      }).single();
-    } catch (e) {
-      // Ignore if RPC doesn't exist
+    if (userPhone) {
+      await supabase.rpc("set_user_context" as any, { user_phone: userPhone });
     }
     
     const { error } = await supabase

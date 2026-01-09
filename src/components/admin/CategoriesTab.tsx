@@ -117,14 +117,9 @@ const CategoriesTab = ({ categories, loading, onRefresh }: CategoriesTabProps) =
     setSaving(true);
     const userPhone = localStorage.getItem("vijaycare_user");
 
-    try {
-      // Set user context for RLS
-      await supabase.rpc("set_config", {
-        setting_name: "app.current_user_phone",
-        new_value: userPhone || "",
-      }).single();
-    } catch (e) {
-      // Ignore if RPC doesn't exist
+    // Set user context for RLS
+    if (userPhone) {
+      await supabase.rpc("set_user_context" as any, { user_phone: userPhone });
     }
 
     const categoryData = {
@@ -172,13 +167,9 @@ const CategoriesTab = ({ categories, loading, onRefresh }: CategoriesTabProps) =
 
     const userPhone = localStorage.getItem("vijaycare_user");
     
-    try {
-      await supabase.rpc("set_config", {
-        setting_name: "app.current_user_phone",
-        new_value: userPhone || "",
-      }).single();
-    } catch (e) {
-      // Ignore if RPC doesn't exist
+    // Set user context for RLS
+    if (userPhone) {
+      await supabase.rpc("set_user_context" as any, { user_phone: userPhone });
     }
 
     const { error } = await supabase
