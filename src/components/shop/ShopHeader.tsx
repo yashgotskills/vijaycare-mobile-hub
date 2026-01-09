@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ShoppingCart, User, Heart, Menu, X, LogOut } from "lucide-react";
+import { ShoppingCart, User, Heart, Menu, X, LogOut, Wrench } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
@@ -43,6 +43,15 @@ const ShopHeader = () => {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="hidden sm:flex"
+              onClick={() => navigate("/repair-request")}
+              title="Repair Service"
+            >
+              <Wrench className="h-5 w-5" />
+            </Button>
             <Button 
               variant="ghost" 
               size="icon" 
@@ -112,6 +121,14 @@ const ShopHeader = () => {
             className="md:hidden bg-background border-t border-border/50"
           >
             <div className="container mx-auto px-4 py-4 space-y-2">
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start"
+                onClick={() => { navigate("/repair-request"); setMobileMenuOpen(false); }}
+              >
+                <Wrench className="h-5 w-5 mr-2" />
+                Repair Service
+              </Button>
               <Button 
                 variant="ghost" 
                 className="w-full justify-start"
