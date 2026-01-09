@@ -10,7 +10,7 @@ const badges = [
   {
     icon: Truck,
     title: "Fast Delivery",
-    description: "Free shipping over ₹499",
+    description: "Free shipping",
   },
   {
     icon: RefreshCw,
