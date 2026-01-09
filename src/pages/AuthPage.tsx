@@ -1,19 +1,22 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Phone, ArrowRight } from "lucide-react";
+import { Phone, ArrowRight, Mail, Lock, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import logo from "@/assets/logo.png";
 
 const AuthPage = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handlePhoneSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (phoneNumber.length < 10) {
@@ -37,6 +40,38 @@ const AuthPage = () => {
       navigate("/shop");
       setIsLoading(false);
     }, 1000);
+  };
+
+  const handleAdminLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email || !password) {
+      toast({
+        title: "Missing Credentials",
+        description: "Please enter both email and password",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    
+    // Check admin credentials
+    if (email === "vijaycare010@gmail.com" && password === "123456789") {
+      localStorage.setItem("vijaycare_user", email);
+      toast({
+        title: "Admin Login Successful!",
+        description: "Welcome back, Admin",
+      });
+      navigate("/admin");
+    } else {
+      toast({
+        title: "Invalid Credentials",
+        description: "Email or password is incorrect",
+        variant: "destructive",
+      });
+    }
+    setIsLoading(false);
   };
 
   return (
@@ -64,50 +99,117 @@ const AuthPage = () => {
               Welcome to VijayCare
             </h1>
             <p className="text-accent font-medium mb-1">Where Mobile Meet Care</p>
-            <p className="text-muted-foreground">
-              Register with your phone number to continue
-            </p>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="relative">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
-                <Phone className="h-5 w-5" />
-              </div>
-              <div className="absolute left-12 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
-                +91
-              </div>
-              <Input
-                type="tel"
-                placeholder="Enter phone number"
-                value={phoneNumber}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, "").slice(0, 10);
-                  setPhoneNumber(value);
-                }}
-                className="pl-20 h-14 text-lg bg-background border-border/50 focus:border-primary"
-              />
-            </div>
+          <Tabs defaultValue="phone" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="phone" className="flex items-center gap-2">
+                <Phone className="h-4 w-4" />
+                Customer
+              </TabsTrigger>
+              <TabsTrigger value="admin" className="flex items-center gap-2">
+                <Shield className="h-4 w-4" />
+                Admin
+              </TabsTrigger>
+            </TabsList>
 
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="w-full h-14 text-lg font-semibold bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              {isLoading ? (
-                <div className="flex items-center gap-2">
-                  <div className="h-5 w-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                  Registering...
+            {/* Phone Registration Tab */}
+            <TabsContent value="phone">
+              <p className="text-muted-foreground text-center mb-4">
+                Register with your phone number to continue
+              </p>
+              <form onSubmit={handlePhoneSubmit} className="space-y-6">
+                <div className="relative">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    <Phone className="h-5 w-5" />
+                  </div>
+                  <div className="absolute left-12 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
+                    +91
+                  </div>
+                  <Input
+                    type="tel"
+                    placeholder="Enter phone number"
+                    value={phoneNumber}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, "").slice(0, 10);
+                      setPhoneNumber(value);
+                    }}
+                    className="pl-20 h-14 text-lg bg-background border-border/50 focus:border-primary"
+                  />
                 </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  Continue
-                  <ArrowRight className="h-5 w-5" />
+
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full h-14 text-lg font-semibold bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  {isLoading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="h-5 w-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                      Registering...
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      Continue
+                      <ArrowRight className="h-5 w-5" />
+                    </div>
+                  )}
+                </Button>
+              </form>
+            </TabsContent>
+
+            {/* Admin Login Tab */}
+            <TabsContent value="admin">
+              <p className="text-muted-foreground text-center mb-4">
+                Admin login with email and password
+              </p>
+              <form onSubmit={handleAdminLogin} className="space-y-4">
+                <div className="relative">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    <Mail className="h-5 w-5" />
+                  </div>
+                  <Input
+                    type="email"
+                    placeholder="Admin email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-12 h-14 text-lg bg-background border-border/50 focus:border-primary"
+                  />
                 </div>
-              )}
-            </Button>
-          </form>
+
+                <div className="relative">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    <Lock className="h-5 w-5" />
+                  </div>
+                  <Input
+                    type="password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-12 h-14 text-lg bg-background border-border/50 focus:border-primary"
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full h-14 text-lg font-semibold bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  {isLoading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="h-5 w-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                      Logging in...
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      Login as Admin
+                      <Shield className="h-5 w-5" />
+                    </div>
+                  )}
+                </Button>
+              </form>
+            </TabsContent>
+          </Tabs>
 
           {/* Terms */}
           <p className="text-center text-sm text-muted-foreground mt-6">
