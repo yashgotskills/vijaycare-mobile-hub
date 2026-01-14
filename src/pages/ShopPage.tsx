@@ -10,7 +10,7 @@ import FlashSale from "@/components/shop/FlashSale";
 import FeaturedProducts from "@/components/shop/FeaturedProducts";
 import BestSellers from "@/components/shop/BestSellers";
 import NewArrivals from "@/components/shop/NewArrivals";
-
+import RepairServiceBanner from "@/components/shop/RepairServiceBanner";
 import RecentlyViewed from "@/components/shop/RecentlyViewed";
 import CompareFloatingButton from "@/components/shop/CompareFloatingButton";
 import Footer from "@/components/Footer";
@@ -54,8 +54,8 @@ const ShopPage = () => {
         {/* Best Sellers */}
         <BestSellers />
 
-        {/* Best Sellers */}
-        <BestSellers />
+        {/* Repair Service Banner */}
+        <RepairServiceBanner />
 
         {/* New Arrivals */}
         <NewArrivals />
