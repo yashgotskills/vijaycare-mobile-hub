@@ -47,7 +47,7 @@ const ShopHeader = () => {
               variant="ghost" 
               size="icon" 
               className="hidden sm:flex"
-              onClick={() => navigate("/repair-request")}
+              onClick={() => navigate("/repair")}
               title="Repair Service"
             >
               <Wrench className="h-5 w-5" />
@@ -124,7 +124,7 @@ const ShopHeader = () => {
               <Button 
                 variant="ghost" 
                 className="w-full justify-start"
-                onClick={() => { navigate("/repair-request"); setMobileMenuOpen(false); }}
+                onClick={() => { navigate("/repair"); setMobileMenuOpen(false); }}
               >
                 <Wrench className="h-5 w-5 mr-2" />
                 Repair Service
