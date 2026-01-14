@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { User, Heart, Package, ChevronRight, Trash2, Wrench, ShoppingBag } from "lucide-react";
+import { User, Heart, Package, ChevronRight, Trash2, Wrench, ShoppingBag, LogOut, MapPin, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,6 +11,7 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import { supabase } from "@/integrations/supabase/client";
 import ShopHeader from "@/components/shop/ShopHeader";
 import Footer from "@/components/Footer";
+import { toast } from "sonner";
 import NotificationToggle from "@/components/NotificationToggle";
 
 interface Order {
@@ -129,7 +130,7 @@ const ProfilePage = () => {
           {/* Profile Header */}
           <Card className="mb-6 border-border/50 bg-card/50 backdrop-blur-sm">
             <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
                     <User className="w-8 h-8 text-primary" />
@@ -139,7 +140,31 @@ const ProfilePage = () => {
                     <p className="text-muted-foreground">+91 {userPhone}</p>
                   </div>
                 </div>
-                <NotificationToggle />
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <NotificationToggle />
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => navigate("/addresses")}
+                    className="flex-1 sm:flex-none"
+                  >
+                    <MapPin className="w-4 h-4 mr-2" />
+                    Addresses
+                  </Button>
+                  <Button 
+                    variant="destructive" 
+                    size="sm"
+                    onClick={() => {
+                      localStorage.removeItem("vijaycare_user");
+                      toast.success("Signed out successfully");
+                      navigate("/");
+                    }}
+                    className="flex-1 sm:flex-none"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign Out
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
