@@ -1,29 +1,58 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
+// Fallback banners
 import bannerNewArrivals from "@/assets/banner-new-arrivals.webp";
 import bannerPremiumCases from "@/assets/banner-premium-cases.webp";
 import bannerMegaSale from "@/assets/banner-mega-sale.webp";
 import bannerRepair from "@/assets/banner-repair.webp";
 import bannerFlagshipPhones from "@/assets/banner-flagship-phones.webp";
 
-const banners = [
-  { id: 1, image: bannerNewArrivals, alt: "Vijay Care - New Arrivals" },
-  { id: 2, image: bannerPremiumCases, alt: "Vijay Care - Premium Cases Collection" },
-  { id: 3, image: bannerMegaSale, alt: "Vijay Care - Mega Sale Up to 50% Off" },
-  { id: 4, image: bannerRepair, alt: "Vijay Care - Expert Phone Repair Service" },
-  { id: 5, image: bannerFlagshipPhones, alt: "Vijay Care - Flagship Phones" },
+interface Banner {
+  id: string;
+  title: string;
+  image_url: string;
+  link: string | null;
+}
+
+const fallbackBanners = [
+  { id: "1", title: "New Arrivals", image_url: bannerNewArrivals, link: null },
+  { id: "2", title: "Premium Cases", image_url: bannerPremiumCases, link: null },
+  { id: "3", title: "Mega Sale", image_url: bannerMegaSale, link: null },
+  { id: "4", title: "Repair Service", image_url: bannerRepair, link: null },
+  { id: "5", title: "Flagship Phones", image_url: bannerFlagshipPhones, link: null },
 ];
 
 const BannerCarousel = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [banners, setBanners] = useState<Banner[]>(fallbackBanners);
 
   useEffect(() => {
+    fetchBanners();
+  }, []);
+
+  const fetchBanners = async () => {
+    const { data, error } = await supabase
+      .from("banners")
+      .select("id, title, image_url, link")
+      .eq("is_active", true)
+      .order("display_order", { ascending: true });
+
+    if (!error && data && data.length > 0) {
+      setBanners(data);
+    }
+  };
+
+  useEffect(() => {
+    if (banners.length === 0) return;
+    
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % banners.length);
     }, 4000);
     return () => clearInterval(interval);
-  }, []);
+  }, [banners.length]);
 
   const goToSlide = (index: number) => {
     setCurrentIndex(index);
@@ -37,19 +66,31 @@ const BannerCarousel = () => {
     setCurrentIndex((prev) => (prev + 1) % banners.length);
   };
 
+  const handleBannerClick = () => {
+    const banner = banners[currentIndex];
+    if (banner.link) {
+      window.location.href = banner.link;
+    }
+  };
+
+  if (banners.length === 0) {
+    return null;
+  }
+
   return (
     <div className="relative w-full overflow-hidden rounded-2xl bg-muted">
       <div className="relative aspect-[2.5/1] md:aspect-[3.3/1]">
         <AnimatePresence mode="wait">
           <motion.img
             key={currentIndex}
-            src={banners[currentIndex].image}
-            alt={banners[currentIndex].alt}
+            src={banners[currentIndex].image_url}
+            alt={banners[currentIndex].title}
             initial={{ opacity: 0, x: 100 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -100 }}
             transition={{ duration: 0.5 }}
-            className="absolute inset-0 w-full h-full object-cover"
+            className={`absolute inset-0 w-full h-full object-cover ${banners[currentIndex].link ? 'cursor-pointer' : ''}`}
+            onClick={handleBannerClick}
           />
         </AnimatePresence>
 
