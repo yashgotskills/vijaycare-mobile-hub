@@ -1,14 +1,18 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import bannerProjectors from "@/assets/banner-projectors.webp";
-import bannerBeem from "@/assets/banner-beem.webp";
-import bannerToadplay from "@/assets/banner-toadplay.webp";
+import bannerNewStock from "@/assets/banner-new-stock.webp";
+import bannerCasesCollection from "@/assets/banner-cases-collection.webp";
+import bannerAccessoriesSale from "@/assets/banner-accessories-sale.webp";
+import bannerRepairService from "@/assets/banner-repair-service.webp";
+import bannerIphoneCases from "@/assets/banner-iphone-cases.webp";
 
 const banners = [
-  { id: 1, image: bannerProjectors, alt: "Projectors Starting from ₹6,499" },
-  { id: 2, image: bannerBeem, alt: "BEEM 540 - Built-in OTT Apps" },
-  { id: 3, image: bannerToadplay, alt: "ToadPlay Sports-Inspired Mini Mouse" },
+  { id: 1, image: bannerNewStock, alt: "VijayCare - New Stock Arrivals" },
+  { id: 2, image: bannerCasesCollection, alt: "Premium Mobile Cases Collection" },
+  { id: 3, image: bannerAccessoriesSale, alt: "Mobile Accessories Sale" },
+  { id: 4, image: bannerRepairService, alt: "VijayCare Phone Repair Service" },
+  { id: 5, image: bannerIphoneCases, alt: "Premium iPhone Cases" },
 ];
 
 const BannerCarousel = () => {

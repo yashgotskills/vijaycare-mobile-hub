@@ -131,6 +131,12 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
     };
 
     try {
+      // Set user context for RLS policy
+      const userPhone = localStorage.getItem("vijaycare_user");
+      if (userPhone) {
+        await supabase.rpc("set_user_context" as any, { user_phone: userPhone });
+      }
+
       if (product) {
         const { error } = await supabase
           .from("products")
