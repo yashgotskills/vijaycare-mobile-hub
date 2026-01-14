@@ -1,18 +1,18 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import bannerNewStock from "@/assets/banner-new-stock.webp";
-import bannerCasesCollection from "@/assets/banner-cases-collection.webp";
-import bannerAccessoriesSale from "@/assets/banner-accessories-sale.webp";
-import bannerRepairService from "@/assets/banner-repair-service.webp";
-import bannerIphoneCases from "@/assets/banner-iphone-cases.webp";
+import bannerNewArrivals from "@/assets/banner-new-arrivals.webp";
+import bannerPremiumCases from "@/assets/banner-premium-cases.webp";
+import bannerMegaSale from "@/assets/banner-mega-sale.webp";
+import bannerRepair from "@/assets/banner-repair.webp";
+import bannerFlagshipPhones from "@/assets/banner-flagship-phones.webp";
 
 const banners = [
-  { id: 1, image: bannerNewStock, alt: "VijayCare - New Stock Arrivals" },
-  { id: 2, image: bannerCasesCollection, alt: "Premium Mobile Cases Collection" },
-  { id: 3, image: bannerAccessoriesSale, alt: "Mobile Accessories Sale" },
-  { id: 4, image: bannerRepairService, alt: "VijayCare Phone Repair Service" },
-  { id: 5, image: bannerIphoneCases, alt: "Premium iPhone Cases" },
+  { id: 1, image: bannerNewArrivals, alt: "Vijay Care - New Arrivals" },
+  { id: 2, image: bannerPremiumCases, alt: "Vijay Care - Premium Cases Collection" },
+  { id: 3, image: bannerMegaSale, alt: "Vijay Care - Mega Sale Up to 50% Off" },
+  { id: 4, image: bannerRepair, alt: "Vijay Care - Expert Phone Repair Service" },
+  { id: 5, image: bannerFlagshipPhones, alt: "Vijay Care - Flagship Phones" },
 ];
 
 const BannerCarousel = () => {
