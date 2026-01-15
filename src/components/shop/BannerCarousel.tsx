@@ -3,11 +3,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-// New banners
-import bannerSpecialOffer from "@/assets/banner-special-offer.png";
-import bannerPowerBank from "@/assets/banner-power-bank.png";
-import bannerAerobuds from "@/assets/banner-aerobuds.png";
-import bannerIphoneCovers from "@/assets/banner-iphone-covers.png";
+// Optimized WebP banners
+import bannerSpecialOffer from "@/assets/banner-special-offer.webp";
+import bannerPowerBank from "@/assets/banner-power-bank.webp";
+import bannerAerobuds from "@/assets/banner-aerobuds.webp";
+import bannerIphoneCovers from "@/assets/banner-iphone-covers.webp";
 
 interface Banner {
   id: string;
