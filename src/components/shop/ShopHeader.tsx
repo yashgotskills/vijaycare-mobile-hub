@@ -24,7 +24,7 @@ const ShopHeader = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 gap-4">
           {/* Logo */}
-          <Link to="/shop" className="flex items-center gap-2 flex-shrink-0">
+          <Link to="/" className="flex items-center gap-2 flex-shrink-0">
             <img src={logo} alt="VijayCare" className="h-10 w-10" />
             <div className="flex flex-col">
               <span className="font-heading font-bold text-lg sm:text-xl text-foreground leading-tight">
@@ -43,9 +43,9 @@ const ShopHeader = () => {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               className="hidden sm:flex relative"
               onClick={() => navigate("/wishlist")}
             >
@@ -56,18 +56,20 @@ const ShopHeader = () => {
                 </span>
               )}
             </Button>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="hidden sm:flex"
+
+            {/* Repair (visible on mobile, placed before cart) */}
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => navigate("/repair")}
               title="Repair Service"
             >
               <Wrench className="h-5 w-5" />
             </Button>
-            <Button 
-              variant="ghost" 
-              size="icon" 
+
+            <Button
+              variant="ghost"
+              size="icon"
               className="relative"
               onClick={() => navigate("/cart")}
             >
@@ -78,9 +80,10 @@ const ShopHeader = () => {
                 </span>
               )}
             </Button>
-            <Button 
-              variant="ghost" 
-              size="icon" 
+
+            <Button
+              variant="ghost"
+              size="icon"
               className="hidden sm:flex"
               onClick={() => navigate("/profile")}
             >
@@ -128,14 +131,6 @@ const ShopHeader = () => {
               >
                 <Heart className="h-5 w-5 mr-2" />
                 Wishlist {wishlistItems > 0 && `(${wishlistItems})`}
-              </Button>
-              <Button 
-                variant="ghost" 
-                className="w-full justify-start"
-                onClick={() => { navigate("/repair"); setMobileMenuOpen(false); }}
-              >
-                <Wrench className="h-5 w-5 mr-2" />
-                Repair Service
               </Button>
               <Button 
                 variant="ghost" 
