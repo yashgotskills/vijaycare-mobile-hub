@@ -1,4 +1,4 @@
-import { Phone, Mail, MapPin, Facebook, Instagram, Twitter, Youtube } from "lucide-react";
+import { Phone, Mail, MapPin, Instagram } from "lucide-react";
 import logo from "@/assets/logo.png";
 import shopPhoto from "@/assets/shop-photo.webp";
 
@@ -21,10 +21,11 @@ const Footer = () => {
   ];
 
   const socialLinks = [
-    { icon: Facebook, href: "#", label: "Facebook" },
-    { icon: Instagram, href: "#", label: "Instagram" },
-    { icon: Twitter, href: "#", label: "Twitter" },
-    { icon: Youtube, href: "#", label: "Youtube" },
+    {
+      icon: Instagram,
+      href: "https://www.instagram.com/vijay.care?igsh=cWVoaXltaTR0cHhk",
+      label: "Instagram",
+    },
   ];
 
   return (
@@ -50,6 +51,8 @@ const Footer = () => {
                 <a
                   key={index}
                   href={social.href}
+                  target="_blank"
+                  rel="noreferrer"
                   aria-label={social.label}
                   className="w-10 h-10 rounded-lg bg-background/10 hover:bg-primary hover:text-primary-foreground flex items-center justify-center transition-colors"
                 >
