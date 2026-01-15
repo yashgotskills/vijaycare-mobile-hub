@@ -4,7 +4,6 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 // Optimized WebP banners
-import bannerSpecialOffer from "@/assets/banner-special-offer.webp";
 import bannerPowerBank from "@/assets/banner-power-bank.webp";
 import bannerAerobuds from "@/assets/banner-aerobuds.webp";
 import bannerIphoneCovers from "@/assets/banner-iphone-covers.webp";
@@ -17,10 +16,9 @@ interface Banner {
 }
 
 const fallbackBanners = [
-  { id: "1", title: "Special Offer", image_url: bannerSpecialOffer, link: null },
-  { id: "2", title: "Power Bank Collection", image_url: bannerPowerBank, link: null },
-  { id: "3", title: "Aerobuds Special", image_url: bannerAerobuds, link: null },
-  { id: "4", title: "iPhone Covers", image_url: bannerIphoneCovers, link: null },
+  { id: "1", title: "Power Bank Collection", image_url: bannerPowerBank, link: null },
+  { id: "2", title: "Aerobuds Special", image_url: bannerAerobuds, link: null },
+  { id: "3", title: "iPhone Covers", image_url: bannerIphoneCovers, link: null },
 ];
 
 const BannerCarousel = () => {

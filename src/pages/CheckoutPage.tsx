@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { 
   ArrowLeft, MapPin, CreditCard, 
   Banknote, Check, Truck, Loader2, Navigation,
-  Home, Building, Plus, Edit2
+  Plus, User, Phone
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,12 +13,6 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import ShopHeader from "@/components/shop/ShopHeader";
 import Footer from "@/components/Footer";
@@ -26,20 +20,9 @@ import CouponInput from "@/components/shop/CouponInput";
 import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
 
-interface SavedAddress {
-  id: string;
-  label: string;
-  full_name: string;
+interface DeliveryAddress {
+  fullName: string;
   phone: string;
-  address_line1: string;
-  address_line2: string | null;
-  city: string;
-  state: string;
-  pincode: string;
-  is_default: boolean;
-}
-
-interface DetectedAddress {
   address: string;
   city: string;
   state: string;
@@ -47,8 +30,6 @@ interface DetectedAddress {
   lat?: number;
   lng?: number;
 }
-
-type AddressSource = "saved" | "detected" | "manual";
 
 const paymentMethods = [
   { id: "razorpay", name: "Pay Online", icon: CreditCard, description: "UPI, Cards, NetBanking" },
@@ -71,53 +52,22 @@ const CheckoutPage = () => {
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [couponDiscount, setCouponDiscount] = useState(0);
   
-  // Address state
-  const [addressSource, setAddressSource] = useState<AddressSource>("saved");
-  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
-  const [selectedSavedAddressId, setSelectedSavedAddressId] = useState<string | null>(null);
-  const [isLoadingAddresses, setIsLoadingAddresses] = useState(true);
-  
-  // Location detection state
-  const [locationStatus, setLocationStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
-  const [detectedAddress, setDetectedAddress] = useState<DetectedAddress | null>(null);
-  
-  // Manual address form
-  const [isManualDialogOpen, setIsManualDialogOpen] = useState(false);
-  const [manualAddress, setManualAddress] = useState<DetectedAddress | null>(null);
-  const [manualForm, setManualForm] = useState({
+  // Customer details form
+  const [customerForm, setCustomerForm] = useState<DeliveryAddress>({
+    fullName: "",
+    phone: "",
     address: "",
     city: "",
     state: "",
     pincode: "",
   });
 
-  const userPhone = localStorage.getItem("vijaycare_user");
+  // Location detection state
+  const [locationStatus, setLocationStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
   const subtotal = totalPrice;
   const shipping = subtotal > 500 ? 0 : 49;
   const total = subtotal + shipping - couponDiscount;
-
-  // Get the active delivery address based on source
-  const getActiveAddress = (): DetectedAddress | null => {
-    if (addressSource === "saved" && selectedSavedAddressId) {
-      const saved = savedAddresses.find(a => a.id === selectedSavedAddressId);
-      if (saved) {
-        return {
-          address: `${saved.address_line1}${saved.address_line2 ? `, ${saved.address_line2}` : ""}`,
-          city: saved.city,
-          state: saved.state,
-          pincode: saved.pincode,
-        };
-      }
-    }
-    if (addressSource === "detected" && detectedAddress) {
-      return detectedAddress;
-    }
-    if (addressSource === "manual" && manualAddress) {
-      return manualAddress;
-    }
-    return null;
-  };
 
   // Load Razorpay script on mount
   useEffect(() => {
@@ -130,48 +80,10 @@ const CheckoutPage = () => {
     };
   }, []);
 
-  // Fetch saved addresses on mount
-  useEffect(() => {
-    if (userPhone) {
-      fetchSavedAddresses();
-    } else {
-      setIsLoadingAddresses(false);
-    }
-  }, [userPhone]);
-
-  const fetchSavedAddresses = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("addresses")
-        .select("*")
-        .eq("user_phone", userPhone)
-        .order("is_default", { ascending: false })
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      
-      setSavedAddresses(data || []);
-      
-      // Auto-select default or first address
-      if (data && data.length > 0) {
-        const defaultAddr = data.find(a => a.is_default) || data[0];
-        setSelectedSavedAddressId(defaultAddr.id);
-        setAddressSource("saved");
-      } else {
-        // No saved addresses, try location detection
-        setAddressSource("detected");
-        requestLocation();
-      }
-    } catch (error) {
-      console.error("Error fetching addresses:", error);
-    } finally {
-      setIsLoadingAddresses(false);
-    }
-  };
-
   const requestLocation = () => {
     if (!navigator.geolocation) {
       setLocationStatus("error");
+      toast.error("Geolocation is not supported by your browser");
       return;
     }
 
@@ -190,31 +102,21 @@ const CheckoutPage = () => {
 
             if (data && data.address) {
               const addr = data.address;
-              setDetectedAddress({
-                address: [addr.road, addr.neighbourhood, addr.suburb].filter(Boolean).join(", ") || data.display_name?.split(",").slice(0, 2).join(",") || "Detected Location",
+              setCustomerForm(prev => ({
+                ...prev,
+                address: [addr.road, addr.neighbourhood, addr.suburb].filter(Boolean).join(", ") || data.display_name?.split(",").slice(0, 2).join(",") || "",
                 city: addr.city || addr.town || addr.village || addr.county || "",
                 state: addr.state || "",
                 pincode: addr.postcode || "",
-                lat: latitude,
-                lng: longitude,
-              });
+              }));
               setLocationStatus("success");
-              if (addressSource === "detected") {
-                toast.success("Location detected successfully");
-              }
+              toast.success("Location detected! Please verify the address.");
             } else {
               throw new Error("Could not parse address");
             }
           } catch {
-            setDetectedAddress({
-              address: "Detected Location",
-              city: "",
-              state: "",
-              pincode: "",
-              lat: latitude,
-              lng: longitude,
-            });
-            setLocationStatus("success");
+            setLocationStatus("error");
+            toast.error("Could not get address from location");
           }
         },
         (error) => {
@@ -223,6 +125,7 @@ const CheckoutPage = () => {
             return;
           }
           setLocationStatus("error");
+          toast.error("Could not detect location. Please enter address manually.");
         },
         { 
           enableHighAccuracy: highAccuracy, 
@@ -235,21 +138,32 @@ const CheckoutPage = () => {
     tryGetPosition(true);
   };
 
-  const handleManualAddressSubmit = () => {
-    if (!manualForm.address || !manualForm.city || !manualForm.state || !manualForm.pincode) {
-      toast.error("Please fill all address fields");
-      return;
+  const validateForm = (): boolean => {
+    if (!customerForm.fullName.trim()) {
+      toast.error("Please enter your full name");
+      return false;
     }
-    
-    setManualAddress({
-      address: manualForm.address,
-      city: manualForm.city,
-      state: manualForm.state,
-      pincode: manualForm.pincode,
-    });
-    setAddressSource("manual");
-    setIsManualDialogOpen(false);
-    toast.success("Address added successfully");
+    if (!customerForm.phone.trim() || customerForm.phone.length < 10) {
+      toast.error("Please enter a valid phone number");
+      return false;
+    }
+    if (!customerForm.address.trim()) {
+      toast.error("Please enter your delivery address");
+      return false;
+    }
+    if (!customerForm.city.trim()) {
+      toast.error("Please enter your city");
+      return false;
+    }
+    if (!customerForm.state.trim()) {
+      toast.error("Please enter your state");
+      return false;
+    }
+    if (!customerForm.pincode.trim() || customerForm.pincode.length < 6) {
+      toast.error("Please enter a valid pincode");
+      return false;
+    }
+    return true;
   };
 
   const handlePlaceOrder = async () => {
@@ -258,17 +172,12 @@ const CheckoutPage = () => {
       return;
     }
 
-    const activeAddress = getActiveAddress();
-    if (!activeAddress) {
-      toast.error("Please select or enter a delivery address");
+    if (!validateForm()) {
       return;
     }
 
-    if (!userPhone) {
-      toast.error("Please login to place order");
-      navigate("/");
-      return;
-    }
+    // Store user phone for order tracking
+    localStorage.setItem("vijaycare_user", customerForm.phone);
 
     setIsProcessing(true);
     
@@ -283,22 +192,38 @@ const CheckoutPage = () => {
 
       const { data: orderData, error: orderError } = await supabase.from("orders").insert({
         order_number: "",
-        user_phone: userPhone,
+        user_phone: customerForm.phone,
         items: orderItems,
         total_amount: total,
         status: "Processing",
         delivery_address: {
-          address: activeAddress.address,
-          city: activeAddress.city,
-          state: activeAddress.state,
-          pincode: activeAddress.pincode,
-          lat: activeAddress.lat,
-          lng: activeAddress.lng
+          full_name: customerForm.fullName,
+          phone: customerForm.phone,
+          address: customerForm.address,
+          city: customerForm.city,
+          state: customerForm.state,
+          pincode: customerForm.pincode,
         },
         payment_method: selectedPayment
       }).select().single();
 
       if (orderError) throw orderError;
+
+      // Update coupon usage if applied
+      if (appliedCoupon) {
+        const { data: couponData } = await supabase
+          .from("coupons")
+          .select("used_count")
+          .eq("code", appliedCoupon)
+          .single();
+        
+        if (couponData) {
+          await supabase
+            .from("coupons")
+            .update({ used_count: (couponData.used_count || 0) + 1 })
+            .eq("code", appliedCoupon);
+        }
+      }
 
       if (selectedPayment === "razorpay") {
         const { data: razorpayData, error: rzError } = await supabase.functions.invoke(
@@ -347,7 +272,8 @@ const CheckoutPage = () => {
             navigate(`/track-order/${orderData.order_number}`);
           },
           prefill: {
-            contact: userPhone,
+            contact: customerForm.phone,
+            name: customerForm.fullName,
           },
           theme: {
             color: "#f97316",
@@ -365,9 +291,10 @@ const CheckoutPage = () => {
         return;
       }
 
+      // COD order - send notification
       supabase.functions.invoke("send-push-notification", {
         body: {
-          user_phone: userPhone,
+          user_phone: customerForm.phone,
           title: "Order Confirmed! 🎉",
           body: `Your order of ₹${total.toLocaleString()} has been placed successfully.`,
           data: { type: "order_confirmed" }
@@ -412,8 +339,6 @@ const CheckoutPage = () => {
     );
   }
 
-  const activeAddress = getActiveAddress();
-
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <ShopHeader />
@@ -433,8 +358,47 @@ const CheckoutPage = () => {
           </div>
 
           <div className="grid lg:grid-cols-3 gap-8">
-            {/* Left Column - Address & Payment */}
+            {/* Left Column - Customer Details & Payment */}
             <div className="lg:col-span-2 space-y-6">
+              {/* Customer Information */}
+              <Card className="border-border/50">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <User className="w-5 h-5 text-primary" />
+                    Customer Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="fullName">Full Name *</Label>
+                      <Input
+                        id="fullName"
+                        value={customerForm.fullName}
+                        onChange={(e) => setCustomerForm({ ...customerForm, fullName: e.target.value })}
+                        placeholder="Enter your full name"
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="phone">Phone Number *</Label>
+                      <div className="relative mt-1">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="phone"
+                          type="tel"
+                          value={customerForm.phone}
+                          onChange={(e) => setCustomerForm({ ...customerForm, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+                          placeholder="10-digit phone number"
+                          className="pl-10"
+                          maxLength={10}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Delivery Address */}
               <Card className="border-border/50">
                 <CardHeader className="pb-4">
@@ -446,188 +410,64 @@ const CheckoutPage = () => {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      onClick={() => navigate("/addresses")}
+                      onClick={requestLocation}
+                      disabled={locationStatus === "loading"}
                       className="gap-1"
                     >
-                      <Edit2 className="w-4 h-4" />
-                      Manage
+                      {locationStatus === "loading" ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Navigation className="w-4 h-4" />
+                      )}
+                      Detect Location
                     </Button>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {isLoadingAddresses ? (
-                    <div className="flex items-center gap-3 p-4 rounded-lg border border-border/50 bg-muted/30">
-                      <Loader2 className="w-5 h-5 animate-spin text-primary" />
-                      <span className="text-muted-foreground">Loading addresses...</span>
+                  <div>
+                    <Label htmlFor="address">Full Address *</Label>
+                    <Textarea
+                      id="address"
+                      value={customerForm.address}
+                      onChange={(e) => setCustomerForm({ ...customerForm, address: e.target.value })}
+                      placeholder="House/Flat No., Building, Street, Landmark"
+                      rows={2}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="city">City *</Label>
+                      <Input
+                        id="city"
+                        value={customerForm.city}
+                        onChange={(e) => setCustomerForm({ ...customerForm, city: e.target.value })}
+                        placeholder="City"
+                        className="mt-1"
+                      />
                     </div>
-                  ) : (
-                    <>
-                      {/* Saved Addresses */}
-                      {savedAddresses.length > 0 && (
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium text-muted-foreground">Saved Addresses</Label>
-                          <RadioGroup
-                            value={addressSource === "saved" ? selectedSavedAddressId || "" : ""}
-                            onValueChange={(id) => {
-                              setSelectedSavedAddressId(id);
-                              setAddressSource("saved");
-                            }}
-                            className="space-y-2"
-                          >
-                            {savedAddresses.map((addr) => (
-                              <div
-                                key={addr.id}
-                                className={`relative flex items-start gap-3 p-4 rounded-lg border transition-colors cursor-pointer ${
-                                  addressSource === "saved" && selectedSavedAddressId === addr.id
-                                    ? 'border-primary bg-primary/5'
-                                    : 'border-border/50 hover:border-primary/30'
-                                }`}
-                                onClick={() => {
-                                  setSelectedSavedAddressId(addr.id);
-                                  setAddressSource("saved");
-                                }}
-                              >
-                                <RadioGroupItem value={addr.id} id={addr.id} className="mt-1" />
-                                <div className={`p-2 rounded-lg ${
-                                  addr.label === "home" 
-                                    ? "bg-blue-500/10 text-blue-600" 
-                                    : "bg-orange-500/10 text-orange-600"
-                                }`}>
-                                  {addr.label === "home" ? <Home className="h-4 w-4" /> : <Building className="h-4 w-4" />}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className="font-semibold text-foreground text-sm">{addr.full_name}</span>
-                                    <span className="text-xs bg-muted px-2 py-0.5 rounded capitalize">{addr.label}</span>
-                                    {addr.is_default && (
-                                      <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">Default</span>
-                                    )}
-                                  </div>
-                                  <p className="text-sm text-muted-foreground line-clamp-1">
-                                    {addr.address_line1}{addr.address_line2 && `, ${addr.address_line2}`}
-                                  </p>
-                                  <p className="text-sm text-muted-foreground">
-                                    {addr.city}, {addr.state} - {addr.pincode}
-                                  </p>
-                                </div>
-                                {addressSource === "saved" && selectedSavedAddressId === addr.id && (
-                                  <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                                )}
-                              </div>
-                            ))}
-                          </RadioGroup>
-                        </div>
-                      )}
-
-                      {/* Use Current Location */}
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium text-muted-foreground">Or use current location</Label>
-                        <div
-                          className={`relative flex items-start gap-3 p-4 rounded-lg border transition-colors cursor-pointer ${
-                            addressSource === "detected" && locationStatus === "success"
-                              ? 'border-primary bg-primary/5'
-                              : 'border-border/50 hover:border-primary/30'
-                          }`}
-                          onClick={() => {
-                            if (locationStatus === "success") {
-                              setAddressSource("detected");
-                            } else {
-                              requestLocation();
-                              setAddressSource("detected");
-                            }
-                          }}
-                        >
-                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            {locationStatus === "loading" ? (
-                              <Loader2 className="w-5 h-5 animate-spin text-primary" />
-                            ) : (
-                              <Navigation className="w-5 h-5 text-primary" />
-                            )}
-                          </div>
-                          <div className="flex-1">
-                            {locationStatus === "loading" && (
-                              <span className="text-muted-foreground">Detecting your location...</span>
-                            )}
-                            {locationStatus === "error" && (
-                              <div>
-                                <p className="text-sm text-destructive mb-1">Could not detect location</p>
-                                <Button variant="link" size="sm" onClick={(e) => { e.stopPropagation(); requestLocation(); }} className="p-0 h-auto text-primary">
-                                  Try again
-                                </Button>
-                              </div>
-                            )}
-                            {locationStatus === "success" && detectedAddress && (
-                              <>
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="font-semibold text-foreground text-sm">Current Location</span>
-                                </div>
-                                <p className="text-sm text-muted-foreground">{detectedAddress.address}</p>
-                                {(detectedAddress.city || detectedAddress.state || detectedAddress.pincode) && (
-                                  <p className="text-sm text-muted-foreground">
-                                    {[detectedAddress.city, detectedAddress.state, detectedAddress.pincode].filter(Boolean).join(", ")}
-                                  </p>
-                                )}
-                              </>
-                            )}
-                            {locationStatus === "idle" && (
-                              <span className="text-muted-foreground">Click to detect your location</span>
-                            )}
-                          </div>
-                          {addressSource === "detected" && locationStatus === "success" && (
-                            <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Manual Address Entry */}
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium text-muted-foreground">Or enter address manually</Label>
-                        {manualAddress ? (
-                          <div
-                            className={`relative flex items-start gap-3 p-4 rounded-lg border transition-colors cursor-pointer ${
-                              addressSource === "manual"
-                                ? 'border-primary bg-primary/5'
-                                : 'border-border/50 hover:border-primary/30'
-                            }`}
-                            onClick={() => setAddressSource("manual")}
-                          >
-                            <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center flex-shrink-0">
-                              <MapPin className="w-5 h-5 text-green-600" />
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="font-semibold text-foreground text-sm">Manual Address</span>
-                              </div>
-                              <p className="text-sm text-muted-foreground">{manualAddress.address}</p>
-                              <p className="text-sm text-muted-foreground">
-                                {[manualAddress.city, manualAddress.state, manualAddress.pincode].filter(Boolean).join(", ")}
-                              </p>
-                            </div>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={(e) => { e.stopPropagation(); setIsManualDialogOpen(true); }}
-                              className="text-xs"
-                            >
-                              Edit
-                            </Button>
-                            {addressSource === "manual" && (
-                              <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                            )}
-                          </div>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            className="w-full gap-2 justify-start"
-                            onClick={() => setIsManualDialogOpen(true)}
-                          >
-                            <Plus className="w-4 h-4" />
-                            Enter address manually
-                          </Button>
-                        )}
-                      </div>
-                    </>
-                  )}
+                    <div>
+                      <Label htmlFor="state">State *</Label>
+                      <Input
+                        id="state"
+                        value={customerForm.state}
+                        onChange={(e) => setCustomerForm({ ...customerForm, state: e.target.value })}
+                        placeholder="State"
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="pincode">Pincode *</Label>
+                      <Input
+                        id="pincode"
+                        value={customerForm.pincode}
+                        onChange={(e) => setCustomerForm({ ...customerForm, pincode: e.target.value.replace(/\D/g, '').slice(0, 6) })}
+                        placeholder="6-digit pincode"
+                        className="mt-1"
+                        maxLength={6}
+                      />
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
 
@@ -713,7 +553,7 @@ const CheckoutPage = () => {
                     }}
                     appliedCode={appliedCoupon}
                     appliedDiscount={couponDiscount}
-                    userPhone={userPhone || undefined}
+                    userPhone={customerForm.phone || undefined}
                   />
 
                   <Separator />
@@ -746,12 +586,13 @@ const CheckoutPage = () => {
                   </div>
 
                   {/* Delivery Address Summary */}
-                  {activeAddress && (
+                  {customerForm.address && customerForm.city && (
                     <div className="p-3 bg-muted/30 rounded-lg">
                       <p className="text-xs text-muted-foreground mb-1">Delivering to:</p>
-                      <p className="text-sm text-foreground line-clamp-2">{activeAddress.address}</p>
+                      <p className="text-sm font-medium text-foreground">{customerForm.fullName}</p>
+                      <p className="text-sm text-foreground line-clamp-2">{customerForm.address}</p>
                       <p className="text-sm text-muted-foreground">
-                        {[activeAddress.city, activeAddress.pincode].filter(Boolean).join(" - ")}
+                        {customerForm.city}, {customerForm.state} - {customerForm.pincode}
                       </p>
                     </div>
                   )}
@@ -760,7 +601,7 @@ const CheckoutPage = () => {
                     className="w-full"
                     size="lg"
                     onClick={handlePlaceOrder}
-                    disabled={isProcessing || !activeAddress}
+                    disabled={isProcessing}
                   >
                     {isProcessing ? (
                       <>
@@ -772,11 +613,9 @@ const CheckoutPage = () => {
                     )}
                   </Button>
 
-                  {!activeAddress && (
-                    <p className="text-xs text-destructive text-center">
-                      Please select a delivery address
-                    </p>
-                  )}
+                  <p className="text-xs text-muted-foreground text-center">
+                    By placing this order, you agree to our Terms & Conditions
+                  </p>
                 </CardContent>
               </Card>
             </div>
@@ -785,68 +624,6 @@ const CheckoutPage = () => {
       </main>
 
       <Footer />
-
-      {/* Manual Address Dialog */}
-      <Dialog open={isManualDialogOpen} onOpenChange={setIsManualDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Enter Delivery Address</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 mt-4">
-            <div>
-              <Label htmlFor="manual_address">Full Address *</Label>
-              <Textarea
-                id="manual_address"
-                value={manualForm.address}
-                onChange={(e) => setManualForm({ ...manualForm, address: e.target.value })}
-                placeholder="House/Flat No., Building, Street, Landmark"
-                rows={2}
-                className="mt-1"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="manual_city">City *</Label>
-                <Input
-                  id="manual_city"
-                  value={manualForm.city}
-                  onChange={(e) => setManualForm({ ...manualForm, city: e.target.value })}
-                  placeholder="City"
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="manual_state">State *</Label>
-                <Input
-                  id="manual_state"
-                  value={manualForm.state}
-                  onChange={(e) => setManualForm({ ...manualForm, state: e.target.value })}
-                  placeholder="State"
-                  className="mt-1"
-                />
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="manual_pincode">Pincode *</Label>
-              <Input
-                id="manual_pincode"
-                value={manualForm.pincode}
-                onChange={(e) => setManualForm({ ...manualForm, pincode: e.target.value })}
-                placeholder="Enter pincode"
-                className="mt-1"
-              />
-            </div>
-            <div className="flex gap-3 pt-2">
-              <Button onClick={handleManualAddressSubmit} className="flex-1">
-                Use This Address
-              </Button>
-              <Button variant="outline" onClick={() => setIsManualDialogOpen(false)}>
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
