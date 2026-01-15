@@ -3,12 +3,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-// Fallback banners
-import bannerNewArrivals from "@/assets/banner-new-arrivals.webp";
-import bannerPremiumCases from "@/assets/banner-premium-cases.webp";
-import bannerMegaSale from "@/assets/banner-mega-sale.webp";
-import bannerRepair from "@/assets/banner-repair.webp";
-import bannerFlagshipPhones from "@/assets/banner-flagship-phones.webp";
+// New banners
+import bannerSpecialOffer from "@/assets/banner-special-offer.png";
+import bannerPowerBank from "@/assets/banner-power-bank.png";
+import bannerAerobuds from "@/assets/banner-aerobuds.png";
+import bannerIphoneCovers from "@/assets/banner-iphone-covers.png";
 
 interface Banner {
   id: string;
@@ -18,11 +17,10 @@ interface Banner {
 }
 
 const fallbackBanners = [
-  { id: "1", title: "New Arrivals", image_url: bannerNewArrivals, link: null },
-  { id: "2", title: "Premium Cases", image_url: bannerPremiumCases, link: null },
-  { id: "3", title: "Mega Sale", image_url: bannerMegaSale, link: null },
-  { id: "4", title: "Repair Service", image_url: bannerRepair, link: null },
-  { id: "5", title: "Flagship Phones", image_url: bannerFlagshipPhones, link: null },
+  { id: "1", title: "Special Offer", image_url: bannerSpecialOffer, link: null },
+  { id: "2", title: "Power Bank Collection", image_url: bannerPowerBank, link: null },
+  { id: "3", title: "Aerobuds Special", image_url: bannerAerobuds, link: null },
+  { id: "4", title: "iPhone Covers", image_url: bannerIphoneCovers, link: null },
 ];
 
 const BannerCarousel = () => {
@@ -79,7 +77,7 @@ const BannerCarousel = () => {
 
   return (
     <div className="relative w-full overflow-hidden rounded-2xl bg-muted">
-      <div className="relative aspect-[2.5/1] md:aspect-[3.3/1]">
+      <div className="relative aspect-[2.5/1] md:aspect-[3/1]">
         <AnimatePresence mode="wait">
           <motion.img
             key={currentIndex}
@@ -89,7 +87,7 @@ const BannerCarousel = () => {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -100 }}
             transition={{ duration: 0.5 }}
-            className={`absolute inset-0 w-full h-full object-cover ${banners[currentIndex].link ? 'cursor-pointer' : ''}`}
+            className={`absolute inset-0 w-full h-full object-cover object-center ${banners[currentIndex].link ? 'cursor-pointer' : ''}`}
             onClick={handleBannerClick}
           />
         </AnimatePresence>

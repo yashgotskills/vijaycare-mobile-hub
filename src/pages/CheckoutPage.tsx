@@ -713,6 +713,7 @@ const CheckoutPage = () => {
                     }}
                     appliedCode={appliedCoupon}
                     appliedDiscount={couponDiscount}
+                    userPhone={userPhone || undefined}
                   />
 
                   <Separator />

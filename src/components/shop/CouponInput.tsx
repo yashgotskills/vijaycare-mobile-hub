@@ -11,9 +11,10 @@ interface CouponInputProps {
   onRemove: () => void;
   appliedCode: string | null;
   appliedDiscount: number;
+  userPhone?: string;
 }
 
-const CouponInput = ({ subtotal, onApply, onRemove, appliedCode, appliedDiscount }: CouponInputProps) => {
+const CouponInput = ({ subtotal, onApply, onRemove, appliedCode, appliedDiscount, userPhone }: CouponInputProps) => {
   const [code, setCode] = useState("");
   const [isValidating, setIsValidating] = useState(false);
 
@@ -62,6 +63,22 @@ const CouponInput = ({ subtotal, onApply, onRemove, appliedCode, appliedDiscount
       if (coupon.max_uses && coupon.used_count && coupon.used_count >= coupon.max_uses) {
         toast.error("This coupon has reached its usage limit");
         return;
+      }
+
+      // Check if this is a first-order coupon (NEW1) and user has previous orders
+      if (coupon.code === "NEW1" && userPhone) {
+        const { data: existingOrders, error: ordersError } = await supabase
+          .from("orders")
+          .select("id")
+          .eq("user_phone", userPhone)
+          .limit(1);
+
+        if (ordersError) {
+          console.error("Error checking orders:", ordersError);
+        } else if (existingOrders && existingOrders.length > 0) {
+          toast.error("This coupon is only valid for first-time customers");
+          return;
+        }
       }
 
       // Calculate discount
