@@ -58,7 +58,8 @@ const AuthPage = () => {
     
     // Check admin credentials
     if (email === "vijaycare010@gmail.com" && password === "123456789") {
-      localStorage.setItem("vijaycare_user", email);
+      // Store admin as phone number so admin permissions work everywhere
+      localStorage.setItem("vijaycare_user", "8595355469");
       toast({
         title: "Admin Login Successful!",
         description: "Welcome back, Admin",
