@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ShoppingCart, User, Heart, Menu, X, LogOut, Wrench } from "lucide-react";
+import { ShoppingCart, User, Heart, Menu, X, LogOut, Wrench, GitCompareArrows } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
+import { useCompare } from "@/contexts/CompareContext";
 import SearchBar from "./SearchBar";
 import logo from "@/assets/logo.png";
 
@@ -13,6 +14,7 @@ const ShopHeader = () => {
   const navigate = useNavigate();
   const { totalItems } = useCart();
   const { totalItems: wishlistItems } = useWishlist();
+  const { compareItems } = useCompare();
 
   const handleLogout = () => {
     localStorage.removeItem("vijaycare_user");
@@ -62,6 +64,20 @@ const ShopHeader = () => {
               {wishlistItems > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
                   {wishlistItems > 9 ? "9+" : wishlistItems}
+                </span>
+              )}
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="hidden sm:flex relative"
+              onClick={() => navigate("/compare")}
+              title="Compare Products"
+            >
+              <GitCompareArrows className="h-5 w-5" />
+              {compareItems.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                  {compareItems.length}
                 </span>
               )}
             </Button>
@@ -136,6 +152,14 @@ const ShopHeader = () => {
               >
                 <Heart className="h-5 w-5 mr-2" />
                 Wishlist {wishlistItems > 0 && `(${wishlistItems})`}
+              </Button>
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start"
+                onClick={() => { navigate("/compare"); setMobileMenuOpen(false); }}
+              >
+                <GitCompareArrows className="h-5 w-5 mr-2" />
+                Compare {compareItems.length > 0 && `(${compareItems.length})`}
               </Button>
               <Button 
                 variant="ghost" 
