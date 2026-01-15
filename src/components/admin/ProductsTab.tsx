@@ -60,22 +60,43 @@ const ProductsTab = ({ products, categories, loading, onRefresh }: ProductsTabPr
     
     const userPhone = localStorage.getItem("vijaycare_user");
     
-    // Set user context for RLS policy
-    if (userPhone) {
-      await supabase.rpc("set_user_context" as any, { user_phone: userPhone });
+    if (!userPhone) {
+      toast.error("Admin session not found. Please log in again.");
+      setDeleteProduct(null);
+      return;
     }
     
-    const { error } = await supabase
-      .from("products")
-      .delete()
-      .eq("id", deleteProduct.id);
+    try {
+      // Set user context for RLS policy
+      const { error: contextError } = await supabase.rpc("set_user_context" as any, { user_phone: userPhone });
+      
+      if (contextError) {
+        console.error("Context error:", contextError);
+        toast.error("Failed to set admin context: " + contextError.message);
+        setDeleteProduct(null);
+        return;
+      }
+      
+      const { error } = await supabase
+        .from("products")
+        .delete()
+        .eq("id", deleteProduct.id);
 
-    if (error) {
-      console.error("Delete error:", error);
-      toast.error("Failed to delete product: " + error.message);
-    } else {
-      toast.success("Product deleted successfully");
-      onRefresh();
+      if (error) {
+        console.error("Delete error:", error);
+        toast.error("Failed to delete product: " + error.message, {
+          description: `Product: ${deleteProduct.name}. Error code: ${error.code}`,
+          duration: 5000
+        });
+      } else {
+        toast.success("Product deleted successfully");
+        onRefresh();
+      }
+    } catch (err: any) {
+      console.error("Unexpected error:", err);
+      toast.error("Unexpected error deleting product", {
+        description: err?.message || "Please try again"
+      });
     }
     setDeleteProduct(null);
   };
