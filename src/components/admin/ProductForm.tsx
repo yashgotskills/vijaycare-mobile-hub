@@ -131,10 +131,21 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
     };
 
     try {
-      // Set user context for RLS policy
+      // Set user context for RLS policy - must be done fresh for each operation
       const userPhone = localStorage.getItem("vijaycare_user");
-      if (userPhone) {
-        await supabase.rpc("set_user_context" as any, { user_phone: userPhone });
+      if (!userPhone) {
+        toast.error("Please login first");
+        setLoading(false);
+        return;
+      }
+      
+      // Set context and wait for it to complete
+      const { error: contextError } = await supabase.rpc("set_user_context" as any, { user_phone: userPhone });
+      if (contextError) {
+        console.error("Context error:", contextError);
+        toast.error("Session error. Please refresh and try again.");
+        setLoading(false);
+        return;
       }
 
       if (product) {
@@ -156,7 +167,8 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
 
       onSuccess();
     } catch (error: any) {
-      toast.error(error.message || "Failed to save product");
+      console.error("Product save error:", error);
+      toast.error(error.message || "Failed to save product. Please try again.");
     } finally {
       setLoading(false);
     }
