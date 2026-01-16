@@ -1,6 +1,7 @@
 import { Phone, Mail, MapPin, Instagram } from "lucide-react";
 import logo from "@/assets/logo.png";
 import shopPhoto from "@/assets/shop-photo.webp";
+import AdminLoginDialog from "./AdminLoginDialog";
 
 const Footer = () => {
   const quickLinks = [
@@ -137,7 +138,7 @@ const Footer = () => {
             <p className="text-background/60 text-sm">
               © {new Date().getFullYear()} VijayCare. All rights reserved.
             </p>
-            <div className="flex gap-6 text-sm">
+            <div className="flex gap-6 text-sm items-center">
               <a href="#" className="text-background/60 hover:text-accent">
                 Privacy Policy
               </a>
@@ -147,6 +148,7 @@ const Footer = () => {
               <a href="#" className="text-background/60 hover:text-accent">
                 Refund Policy
               </a>
+              <AdminLoginDialog />
             </div>
           </div>
         </div>
