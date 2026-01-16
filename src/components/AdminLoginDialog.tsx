@@ -15,7 +15,11 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
-const AdminLoginDialog = () => {
+interface AdminLoginDialogProps {
+  trigger?: React.ReactNode;
+}
+
+const AdminLoginDialog = ({ trigger }: AdminLoginDialogProps) => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [phone, setPhone] = useState("");
@@ -62,10 +66,12 @@ const AdminLoginDialog = () => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <button className="text-background/60 hover:text-accent transition-colors flex items-center gap-1">
-          <Lock className="w-3 h-3" />
-          Admin
-        </button>
+        {trigger || (
+          <button className="text-background/60 hover:text-accent transition-colors flex items-center gap-1">
+            <Lock className="w-3 h-3" />
+            Admin
+          </button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
