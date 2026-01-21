@@ -1,3 +1,4 @@
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import motorolaLogo from "@/assets/brands/motorola.svg";
 import nothingLogo from "@/assets/brands/nothing.svg";
@@ -33,6 +34,7 @@ function BrandTile({ brand, onClick }: { brand: { name: string; logo: string; sl
           className={`h-8 w-auto max-w-[100px] object-contain ${extraImgClass}`}
           loading="eager"
           referrerPolicy="no-referrer"
+          draggable={false}
         />
       </div>
       <span className="text-xs font-medium text-muted-foreground group-hover:text-primary transition-colors">{brand.name}</span>
@@ -42,30 +44,73 @@ function BrandTile({ brand, onClick }: { brand: { name: string; logo: string; sl
 
 const BrandMarquee = () => {
   const navigate = useNavigate();
-  
-  // Double the brands for seamless loop
-  const allBrands = [...brands, ...brands];
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
 
   const handleBrandClick = (slug: string, name: string) => {
-    // Navigate to search results filtered by brand
-    navigate(`/search?brand=${slug}&q=${encodeURIComponent(name)}`);
+    // Only navigate if not dragging
+    if (!isDragging) {
+      navigate(`/search?brand=${slug}&q=${encodeURIComponent(name)}`);
+    }
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollRef.current) return;
+    setIsDragging(true);
+    setStartX(e.pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !scrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    scrollRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!scrollRef.current) return;
+    setStartX(e.touches[0].pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!scrollRef.current) return;
+    const x = e.touches[0].pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    scrollRef.current.scrollLeft = scrollLeft - walk;
   };
 
   return (
     <section
       aria-label="Supported phone brands"
-      className="overflow-hidden bg-card/50 py-8 border-y border-border/30"
+      className="bg-card/50 py-8 border-y border-border/30"
     >
-      <div className="marquee-container">
-        <div className="marquee-content">
-          {allBrands.map((brand, index) => (
-            <BrandTile 
-              key={`${brand.name}-${index}`} 
-              brand={brand} 
-              onClick={() => handleBrandClick(brand.slug, brand.name)}
-            />
-          ))}
-        </div>
+      <div 
+        ref={scrollRef}
+        className="flex gap-4 overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing px-4"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        onMouseMove={handleMouseMove}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+      >
+        {brands.map((brand) => (
+          <BrandTile 
+            key={brand.name} 
+            brand={brand} 
+            onClick={() => handleBrandClick(brand.slug, brand.name)}
+          />
+        ))}
       </div>
     </section>
   );
