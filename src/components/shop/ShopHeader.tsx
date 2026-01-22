@@ -8,6 +8,8 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import SearchBar from "./SearchBar";
 import AdminLoginDialog from "@/components/AdminLoginDialog";
 import logo from "@/assets/logo.png";
+import ThemeToggle from "@/components/theme/ThemeToggle";
+import Magnetic from "@/components/motion/Magnetic";
 
 const ShopHeader = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -63,30 +65,32 @@ const ShopHeader = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 gap-4">
           {/* Logo with secret tap/long-press */}
-          <Link 
-            to="/" 
-            className="flex items-center gap-2 flex-shrink-0 select-none"
-            onClick={(e) => {
-              e.preventDefault();
-              handleLogoTap();
-              navigate("/");
-            }}
-            onMouseDown={handleLongPressStart}
-            onMouseUp={handleLongPressEnd}
-            onMouseLeave={handleLongPressEnd}
-            onTouchStart={handleLongPressStart}
-            onTouchEnd={handleLongPressEnd}
-          >
-            <img src={logo} alt="VijayCare" className="h-10 w-10" draggable={false} />
-            <div className="flex flex-col">
-              <span className="font-heading font-bold text-lg sm:text-xl text-foreground leading-tight">
-                VijayCare
-              </span>
-              <span className="hidden sm:block text-xs text-muted-foreground leading-tight">
-                Where Mobile Meet Care
-              </span>
-            </div>
-          </Link>
+          <Magnetic strength={8}>
+            <Link
+              to="/"
+              className="flex items-center gap-2 flex-shrink-0 select-none"
+              onClick={(e) => {
+                e.preventDefault();
+                handleLogoTap();
+                navigate("/");
+              }}
+              onMouseDown={handleLongPressStart}
+              onMouseUp={handleLongPressEnd}
+              onMouseLeave={handleLongPressEnd}
+              onTouchStart={handleLongPressStart}
+              onTouchEnd={handleLongPressEnd}
+            >
+              <img src={logo} alt="VijayCare" className="h-10 w-10" draggable={false} />
+              <div className="flex flex-col">
+                <span className="font-heading font-bold text-lg sm:text-xl text-foreground leading-tight">
+                  VijayCare
+                </span>
+                <span className="hidden sm:block text-xs text-muted-foreground leading-tight">
+                  Where Mobile Meet Care
+                </span>
+              </div>
+            </Link>
+          </Magnetic>
 
           {/* Search Bar - Desktop */}
           <div className="hidden md:flex flex-1 max-w-2xl">
@@ -95,6 +99,8 @@ const ShopHeader = () => {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
+            <ThemeToggle />
+
             <Button
               variant="ghost"
               size="icon"

@@ -1,7 +1,8 @@
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { ShoppingCart, Heart, Star, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import Magnetic from "@/components/motion/Magnetic";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useNavigate } from "react-router-dom";
@@ -13,6 +14,7 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
+  const reduceMotion = useReducedMotion();
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
@@ -54,19 +56,23 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05 }}
+      initial={reduceMotion ? false : { opacity: 0, y: 18, filter: "blur(8px)" }}
+      animate={reduceMotion ? undefined : { opacity: 1, y: 0, filter: "blur(0px)" }}
+      transition={reduceMotion ? undefined : { delay: index * 0.04, duration: 0.55, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
       onClick={() => navigate(`/product/${product.slug}`)}
-      className="group bg-card border border-border/50 rounded-xl overflow-hidden hover:shadow-xl hover:border-primary/30 transition-all cursor-pointer"
+      className="group relative bg-card/80 backdrop-blur-md border border-border/60 rounded-2xl overflow-hidden hover:shadow-card hover:border-primary/25 transition-all cursor-pointer"
     >
       <div className="relative aspect-square overflow-hidden bg-muted">
         <img
           src={product.images[0] || "https://placehold.co/400x400?text=No+Image"}
           alt={product.name}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+          className="w-full h-full object-cover group-hover:scale-[1.08] transition-transform duration-700"
           loading="lazy"
         />
+
+        {/* Spotlight */}
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 bg-gradient-to-tr from-transparent via-primary/10 to-accent/10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-foreground/10 via-transparent to-transparent" />
         
         {/* Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
@@ -76,38 +82,47 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
             </Badge>
           )}
           {product.is_new && (
-            <Badge className="bg-green-500 text-white text-xs">NEW</Badge>
+            <Badge className="bg-primary text-primary-foreground text-xs">NEW</Badge>
           )}
           {product.is_bestseller && (
-            <Badge className="bg-orange-500 text-white text-xs">BESTSELLER</Badge>
+            <Badge className="bg-secondary text-secondary-foreground text-xs">BESTSELLER</Badge>
           )}
         </div>
 
         {/* Stock warning */}
         {product.stock_quantity < 10 && product.stock_quantity > 0 && (
-          <Badge className="absolute bottom-2 left-2 bg-red-500/90 text-white text-xs">
+          <Badge className="absolute bottom-2 left-2 bg-destructive text-destructive-foreground text-xs">
             Only {product.stock_quantity} left!
           </Badge>
         )}
 
         {/* Action buttons */}
         <div className="absolute top-2 right-2 flex flex-col gap-1">
-          <button
-            onClick={handleToggleWishlist}
-            className={`p-1.5 rounded-full transition-all ${
-              isInWishlist(numericId)
-                ? "bg-red-500 text-white"
-                : "bg-background/80 opacity-0 group-hover:opacity-100 hover:bg-background"
-            }`}
-          >
-            <Heart className={`h-4 w-4 ${isInWishlist(numericId) ? "fill-current" : ""}`} />
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); navigate(`/product/${product.slug}`); }}
-            className="p-1.5 rounded-full bg-background/80 opacity-0 group-hover:opacity-100 hover:bg-background transition-all"
-          >
-            <Eye className="h-4 w-4" />
-          </button>
+          <Magnetic strength={8}>
+            <button
+              onClick={handleToggleWishlist}
+              aria-label={isInWishlist(numericId) ? "Remove from wishlist" : "Add to wishlist"}
+              className={`p-1.5 rounded-full backdrop-blur-md border border-border/60 transition-all ${
+                isInWishlist(numericId)
+                  ? "bg-destructive text-destructive-foreground"
+                  : "bg-background/70 opacity-0 group-hover:opacity-100 hover:bg-background/90"
+              }`}
+            >
+              <Heart className={`h-4 w-4 ${isInWishlist(numericId) ? "fill-current" : ""}`} />
+            </button>
+          </Magnetic>
+          <Magnetic strength={8}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/product/${product.slug}`);
+              }}
+              aria-label="View details"
+              className="p-1.5 rounded-full bg-background/70 backdrop-blur-md border border-border/60 opacity-0 group-hover:opacity-100 hover:bg-background/90 transition-all"
+            >
+              <Eye className="h-4 w-4" />
+            </button>
+          </Magnetic>
         </div>
       </div>
 
@@ -130,7 +145,7 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
         {/* Rating */}
         {product.review_count > 0 && (
           <div className="flex items-center gap-1 mt-1">
-            <div className="flex items-center gap-0.5 bg-green-600 text-white text-xs px-1.5 py-0.5 rounded">
+            <div className="flex items-center gap-0.5 bg-accent text-accent-foreground text-xs px-1.5 py-0.5 rounded">
               <span>{product.rating_average.toFixed(1)}</span>
               <Star className="h-3 w-3 fill-current" />
             </div>
@@ -151,15 +166,17 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
         </div>
 
         {/* Add to Cart */}
-        <Button
-          size="sm"
-          className="w-full mt-3 bg-primary hover:bg-primary/90"
-          onClick={handleAddToCart}
-          disabled={product.stock_quantity === 0}
-        >
-          <ShoppingCart className="h-4 w-4 mr-1" />
-          {product.stock_quantity === 0 ? "Out of Stock" : "Add to Cart"}
-        </Button>
+        <Magnetic strength={12}>
+          <Button
+            size="sm"
+            className="w-full mt-3"
+            onClick={handleAddToCart}
+            disabled={product.stock_quantity === 0}
+          >
+            <ShoppingCart className="h-4 w-4 mr-1" />
+            {product.stock_quantity === 0 ? "Out of Stock" : "Add to Cart"}
+          </Button>
+        </Magnetic>
       </div>
     </motion.div>
   );

@@ -9,6 +9,7 @@ import { CompareProvider } from "./contexts/CompareContext";
 import ScrollToTop from "./components/ScrollToTop";
 import AmbientBackground from "@/components/motion/AmbientBackground";
 import PageTransition from "@/components/motion/PageTransition";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import ShopPage from "./pages/ShopPage";
 import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
@@ -34,12 +35,13 @@ const App = () => (
       <WishlistProvider>
         <CompareProvider>
           <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <ScrollToTop />
-               <AmbientBackground />
-               <Routes>
+            <ThemeProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <ScrollToTop />
+                <AmbientBackground />
+                <Routes>
                  <Route
                    path="/"
                    element={
@@ -177,8 +179,9 @@ const App = () => (
                      </PageTransition>
                    }
                  />
-               </Routes>
-            </BrowserRouter>
+                </Routes>
+              </BrowserRouter>
+            </ThemeProvider>
           </TooltipProvider>
         </CompareProvider>
       </WishlistProvider>
