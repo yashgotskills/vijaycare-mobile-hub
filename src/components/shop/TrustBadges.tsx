@@ -1,5 +1,6 @@
 import { Shield, Truck, RefreshCw, Headphones } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
+import Magnetic from "@/components/motion/Magnetic";
 
 const badges = [
   {
@@ -25,25 +26,30 @@ const badges = [
 ];
 
 const TrustBadges = () => {
+  const reduceMotion = useReducedMotion();
   return (
-    <section className="py-8 bg-primary/5 border-y border-border/50">
+    <section className="py-8 bg-card/40 backdrop-blur-md border-y border-border/40">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {badges.map((badge, index) => (
             <motion.div
               key={badge.title}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="flex items-center gap-3"
+              initial={reduceMotion ? false : { opacity: 0, y: 12, filter: "blur(8px)" }}
+              whileInView={reduceMotion ? undefined : { opacity: 1, y: 0, filter: "blur(0px)" }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={reduceMotion ? undefined : { delay: index * 0.06, duration: 0.55, ease: "easeOut" }}
             >
-              <div className="p-2 bg-primary/10 rounded-lg shrink-0">
-                <badge.icon className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="font-semibold text-foreground text-sm">{badge.title}</p>
-                <p className="text-xs text-muted-foreground">{badge.description}</p>
-              </div>
+              <Magnetic strength={10}>
+                <div className="group flex items-center gap-3 p-3 rounded-2xl border border-border/50 bg-background/60 dark:bg-background/20 backdrop-blur-md hover:shadow-card hover:border-primary/20 transition-all">
+                  <div className="p-2 rounded-xl shrink-0 bg-primary/10 group-hover:bg-primary/15 transition-colors">
+                    <badge.icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-foreground text-sm">{badge.title}</p>
+                    <p className="text-xs text-muted-foreground">{badge.description}</p>
+                  </div>
+                </div>
+              </Magnetic>
             </motion.div>
           ))}
         </div>
