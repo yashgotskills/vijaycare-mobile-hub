@@ -2,6 +2,8 @@ import ProductCard from "./ProductCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Product } from "@/types/product";
 
+// Note: animation is handled by ProductCard (keeps ProductGrid TS-simple).
+
 interface ProductGridProps {
   products: Product[];
   isLoading?: boolean;
