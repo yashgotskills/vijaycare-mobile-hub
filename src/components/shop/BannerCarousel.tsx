@@ -39,8 +39,8 @@ const BannerCarousel = () => {
       .eq("is_active", true)
       .order("display_order", { ascending: true });
 
-    if (!error && data && data.length > 0) {
-      setBanners(data);
+    if (!error && data) {
+      setBanners(data.length > 0 ? data : fallbackBanners);
     }
   };
 
@@ -86,7 +86,10 @@ const BannerCarousel = () => {
             initial={reduceMotion ? { opacity: 0 } : { opacity: 0, x: 90 }}
             animate={reduceMotion ? { opacity: 1 } : { opacity: 1, x: 0 }}
             exit={reduceMotion ? { opacity: 0 } : { opacity: 0, x: -90 }}
-            transition={{ duration: reduceMotion ? 0.2 : 0.6, ease: [0.22, 1, 0.36, 1] }}
+            transition={{
+              duration: reduceMotion ? 0.2 : 0.6,
+              ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
+            }}
             onClick={handleBannerClick}
           >
             {/* Image (subtle parallax/zoom) */}
@@ -96,7 +99,10 @@ const BannerCarousel = () => {
               className="absolute inset-0 w-full h-full object-cover object-center"
               initial={reduceMotion ? { scale: 1 } : { scale: 1.06 }}
               animate={reduceMotion ? { scale: 1 } : { scale: 1.01 }}
-              transition={{ duration: reduceMotion ? 0 : 4.2, ease: [0.22, 1, 0.36, 1] }}
+              transition={{
+                duration: reduceMotion ? 0 : 4.2,
+                ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
+              }}
               loading="eager"
             />
 
@@ -117,7 +123,11 @@ const BannerCarousel = () => {
                 <motion.h2
                   initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 14 }}
                   animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-                  transition={{ delay: reduceMotion ? 0 : 0.16, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                  transition={{
+                    delay: reduceMotion ? 0 : 0.16,
+                    duration: 0.6,
+                    ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
+                  }}
                   className="mt-1 text-xl md:text-3xl font-display font-bold text-primary-foreground leading-tight"
                 >
                   {banners[currentIndex].title}
