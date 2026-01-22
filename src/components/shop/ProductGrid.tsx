@@ -1,7 +1,6 @@
 import ProductCard from "./ProductCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, useReducedMotion } from "framer-motion";
-import { editorialStagger } from "@/lib/motion";
 import type { Product } from "@/types/product";
 
 interface ProductGridProps {
@@ -46,12 +45,7 @@ const ProductGrid = ({ products, isLoading, columns = 6 }: ProductGridProps) => 
   }
 
   return (
-    <motion.div
-      variants={editorialStagger}
-      initial={reduceMotion ? false : "hidden"}
-      animate={reduceMotion ? undefined : "show"}
-      className={`grid ${gridCols[columns]} gap-4`}
-    >
+    <div className={`grid ${gridCols[columns]} gap-4`}>
       {products.map((product, index) => (
         <motion.div
           key={product.id}
@@ -78,7 +72,7 @@ const ProductGrid = ({ products, isLoading, columns = 6 }: ProductGridProps) => 
           <ProductCard product={product} index={index} />
         </motion.div>
       ))}
-    </motion.div>
+    </div>
   );
 };
 

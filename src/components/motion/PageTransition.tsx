@@ -15,7 +15,7 @@ const PageTransition = ({ children, className }: PageTransitionProps) => {
       transition={
         reduceMotion
           ? { duration: 0 }
-          : { duration: 0.55, ease: [0.22, 1, 0.36, 1] }
+          : { duration: 0.55, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }
       }
     >
       {children}
