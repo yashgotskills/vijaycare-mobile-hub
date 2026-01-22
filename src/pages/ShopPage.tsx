@@ -8,9 +8,9 @@ import FlashSale from "@/components/shop/FlashSale";
 import FeaturedProducts from "@/components/shop/FeaturedProducts";
 import BestSellers from "@/components/shop/BestSellers";
 import NewArrivals from "@/components/shop/NewArrivals";
-import RecentlyViewed from "@/components/shop/RecentlyViewed";
 import CompareFloatingButton from "@/components/shop/CompareFloatingButton";
 import Footer from "@/components/Footer";
+import ScrollReveal from "@/components/motion/ScrollReveal";
 
 const ShopPage = () => {
   return (
@@ -20,9 +20,9 @@ const ShopPage = () => {
       
       <main>
         {/* Banner Carousel */}
-        <section className="container mx-auto px-4 py-6">
+        <ScrollReveal as="section" className="container mx-auto px-4 py-8">
           <BannerCarousel />
-        </section>
+        </ScrollReveal>
 
         {/* Trust Badges */}
         <TrustBadges />

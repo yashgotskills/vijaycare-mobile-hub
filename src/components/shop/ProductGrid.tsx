@@ -1,4 +1,3 @@
-// @ts-nocheck
 import ProductCard from "./ProductCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Product } from "@/types/product";
