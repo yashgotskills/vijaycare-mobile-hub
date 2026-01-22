@@ -103,7 +103,7 @@ const ShopHeader = () => {
             >
               <Heart className="h-5 w-5" />
               {wishlistItems > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                 <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
                   {wishlistItems > 9 ? "9+" : wishlistItems}
                 </span>
               )}
