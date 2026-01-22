@@ -23,7 +23,7 @@ const CategoryGrid = () => {
 
   if (isLoading) {
     return (
-      <section className="py-8">
+      <section className="py-10 md:py-12">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -36,7 +36,7 @@ const CategoryGrid = () => {
   }
 
   return (
-    <section className="py-8">
+    <section className="py-10 md:py-12">
       <div className="container mx-auto px-4">
         <motion.div
           initial={reduceMotion ? false : { opacity: 0, y: 14, filter: "blur(8px)" }}
@@ -45,11 +45,11 @@ const CategoryGrid = () => {
           transition={reduceMotion ? undefined : { duration: 0.6, ease: "easeOut" }}
           className="mb-6"
         >
-          <h2 className="text-xl md:text-2xl font-bold font-display text-foreground">
+          <h2 className="text-xl md:text-2xl font-bold font-display text-foreground tracking-tight">
             Shop by Category
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Curated essentials, instantly.
+            Quick picks to start your search.
           </p>
         </motion.div>
 

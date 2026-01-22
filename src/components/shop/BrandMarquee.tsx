@@ -154,14 +154,14 @@ const BrandMarquee = () => {
       whileInView={reduceMotion ? undefined : { opacity: 1, y: 0, filter: "blur(0px)" }}
       viewport={{ once: true, margin: "-80px" }}
       transition={reduceMotion ? undefined : { duration: 0.65, ease: "easeOut" }}
-      className="bg-card/40 backdrop-blur-md py-8 border-y border-border/40 relative"
+      className="bg-card/40 backdrop-blur-md py-10 md:py-12 border-y border-border/40 relative"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      <div className="container mx-auto px-4 mb-4 flex items-end justify-between">
+      <div className="container mx-auto px-4 mb-5 flex items-end justify-between">
         <div>
-          <h2 className="text-lg md:text-xl font-display font-bold text-foreground">Shop by Brand</h2>
-          <p className="text-sm text-muted-foreground mt-1">Swipe, drag, or use arrows—instant filters.</p>
+          <h2 className="text-lg md:text-xl font-display font-bold text-foreground tracking-tight">Shop by Brand</h2>
+          <p className="text-sm text-muted-foreground mt-1">Swipe, drag, or tap—filters apply instantly.</p>
         </div>
       </div>
 
