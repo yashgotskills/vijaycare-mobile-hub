@@ -52,12 +52,12 @@ const ProductGrid = ({ products, isLoading, columns = 6 }: ProductGridProps) => 
           initial={
             reduceMotion
               ? false
-              : { opacity: 0, y: 18, filter: "blur(8px)" }
+              : { opacity: 0, y: 18 }
           }
           animate={
             reduceMotion
               ? undefined
-              : { opacity: 1, y: 0, filter: "blur(0px)" }
+              : { opacity: 1, y: 0 }
           }
           transition={
             reduceMotion
@@ -65,7 +65,6 @@ const ProductGrid = ({ products, isLoading, columns = 6 }: ProductGridProps) => 
               : {
                   delay: index * 0.03,
                   duration: 0.55,
-                  ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
                 }
           }
         >
