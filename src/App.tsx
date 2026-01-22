@@ -7,6 +7,8 @@ import { CartProvider } from "./contexts/CartContext";
 import { WishlistProvider } from "./contexts/WishlistContext";
 import { CompareProvider } from "./contexts/CompareContext";
 import ScrollToTop from "./components/ScrollToTop";
+import AmbientBackground from "@/components/motion/AmbientBackground";
+import PageTransition from "@/components/motion/PageTransition";
 import ShopPage from "./pages/ShopPage";
 import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
@@ -36,26 +38,146 @@ const App = () => (
             <Sonner />
             <BrowserRouter>
               <ScrollToTop />
-              <Routes>
-                <Route path="/" element={<ShopPage />} />
-                <Route path="/cart" element={<CartPage />} />
-                <Route path="/checkout" element={<CheckoutPage />} />
-                <Route path="/profile" element={<ProfilePage />} />
-                <Route path="/wishlist" element={<WishlistPage />} />
-                <Route path="/repair" element={<RepairRequestPage />} />
-                <Route path="/product/:slug" element={<ProductDetailPage />} />
-                <Route path="/category/:slug" element={<CategoryPage />} />
-                <Route path="/categories" element={<CategoriesPage />} />
-                <Route path="/order-success" element={<OrderSuccessPage />} />
-                <Route path="/search" element={<SearchResultsPage />} />
-                <Route path="/addresses" element={<AddressesPage />} />
-                <Route path="/compare" element={<ComparePage />} />
-                <Route path="/track-order" element={<OrderTrackingPage />} />
-                <Route path="/track-order/:orderNumber" element={<OrderTrackingPage />} />
-                <Route path="/admin" element={<AdminPage />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+               <AmbientBackground />
+               <Routes>
+                 <Route
+                   path="/"
+                   element={
+                     <PageTransition>
+                       <ShopPage />
+                     </PageTransition>
+                   }
+                 />
+                 <Route
+                   path="/cart"
+                   element={
+                     <PageTransition>
+                       <CartPage />
+                     </PageTransition>
+                   }
+                 />
+                 <Route
+                   path="/checkout"
+                   element={
+                     <PageTransition>
+                       <CheckoutPage />
+                     </PageTransition>
+                   }
+                 />
+                 <Route
+                   path="/profile"
+                   element={
+                     <PageTransition>
+                       <ProfilePage />
+                     </PageTransition>
+                   }
+                 />
+                 <Route
+                   path="/wishlist"
+                   element={
+                     <PageTransition>
+                       <WishlistPage />
+                     </PageTransition>
+                   }
+                 />
+                 <Route
+                   path="/repair"
+                   element={
+                     <PageTransition>
+                       <RepairRequestPage />
+                     </PageTransition>
+                   }
+                 />
+                 <Route
+                   path="/product/:slug"
+                   element={
+                     <PageTransition>
+                       <ProductDetailPage />
+                     </PageTransition>
+                   }
+                 />
+                 <Route
+                   path="/category/:slug"
+                   element={
+                     <PageTransition>
+                       <CategoryPage />
+                     </PageTransition>
+                   }
+                 />
+                 <Route
+                   path="/categories"
+                   element={
+                     <PageTransition>
+                       <CategoriesPage />
+                     </PageTransition>
+                   }
+                 />
+                 <Route
+                   path="/order-success"
+                   element={
+                     <PageTransition>
+                       <OrderSuccessPage />
+                     </PageTransition>
+                   }
+                 />
+                 <Route
+                   path="/search"
+                   element={
+                     <PageTransition>
+                       <SearchResultsPage />
+                     </PageTransition>
+                   }
+                 />
+                 <Route
+                   path="/addresses"
+                   element={
+                     <PageTransition>
+                       <AddressesPage />
+                     </PageTransition>
+                   }
+                 />
+                 <Route
+                   path="/compare"
+                   element={
+                     <PageTransition>
+                       <ComparePage />
+                     </PageTransition>
+                   }
+                 />
+                 <Route
+                   path="/track-order"
+                   element={
+                     <PageTransition>
+                       <OrderTrackingPage />
+                     </PageTransition>
+                   }
+                 />
+                 <Route
+                   path="/track-order/:orderNumber"
+                   element={
+                     <PageTransition>
+                       <OrderTrackingPage />
+                     </PageTransition>
+                   }
+                 />
+                 <Route
+                   path="/admin"
+                   element={
+                     <PageTransition>
+                       <AdminPage />
+                     </PageTransition>
+                   }
+                 />
+                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                 <Route
+                   path="*"
+                   element={
+                     <PageTransition>
+                       <NotFound />
+                     </PageTransition>
+                   }
+                 />
+               </Routes>
             </BrowserRouter>
           </TooltipProvider>
         </CompareProvider>
