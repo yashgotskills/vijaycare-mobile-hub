@@ -1,7 +1,9 @@
 import { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import Magnetic from "@/components/motion/Magnetic";
 import motorolaLogo from "@/assets/brands/motorola.svg";
 import nothingLogo from "@/assets/brands/nothing.svg";
 import oppoLogo from "@/assets/brands/oppo.svg";
@@ -25,28 +27,33 @@ function BrandTile({ brand, onClick }: { brand: { name: string; logo: string; sl
   const extraImgClass = brand.name === "Nothing" ? "dark:invert" : "";
 
   return (
-    <div 
-      className="flex-shrink-0 flex flex-col items-center justify-center h-20 w-36 gap-2 cursor-pointer group"
-      onClick={onClick}
-    >
-      <div className="rounded-md border border-border/40 bg-background/70 px-4 py-3 shadow-sm transition-all duration-300 group-hover:border-primary group-hover:shadow-md group-hover:scale-105">
-        <img
-          src={brand.logo}
-          alt={`${brand.name} logo`}
-          className={`h-8 w-auto max-w-[100px] object-contain ${extraImgClass}`}
-          loading="eager"
-          referrerPolicy="no-referrer"
-          draggable={false}
-        />
+    <Magnetic strength={10}>
+      <div
+        className="flex-shrink-0 flex flex-col items-center justify-center h-20 w-36 gap-2 cursor-pointer group"
+        onClick={onClick}
+      >
+        <div className="rounded-xl border border-border/50 bg-card/70 backdrop-blur-md px-4 py-3 shadow-sm transition-all duration-300 group-hover:border-primary/30 group-hover:shadow-card group-hover:scale-[1.04]">
+          <img
+            src={brand.logo}
+            alt={`${brand.name} logo`}
+            className={`h-8 w-auto max-w-[100px] object-contain ${extraImgClass}`}
+            loading="eager"
+            referrerPolicy="no-referrer"
+            draggable={false}
+          />
+        </div>
+        <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+          {brand.name}
+        </span>
       </div>
-      <span className="text-xs font-medium text-muted-foreground group-hover:text-primary transition-colors">{brand.name}</span>
-    </div>
+    </Magnetic>
   );
 }
 
 const BrandMarquee = () => {
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const reduceMotion = useReducedMotion();
   const [isDragging, setIsDragging] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -141,21 +148,35 @@ const BrandMarquee = () => {
   };
 
   return (
-    <section
+    <motion.section
       aria-label="Supported phone brands"
-      className="bg-card/50 py-8 border-y border-border/30 relative"
+      initial={reduceMotion ? false : { opacity: 0, y: 18, filter: "blur(10px)" }}
+      whileInView={reduceMotion ? undefined : { opacity: 1, y: 0, filter: "blur(0px)" }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={reduceMotion ? undefined : { duration: 0.65, ease: "easeOut" }}
+      className="bg-card/40 backdrop-blur-md py-8 border-y border-border/40 relative"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
+      <div className="container mx-auto px-4 mb-4 flex items-end justify-between">
+        <div>
+          <h2 className="text-lg md:text-xl font-display font-bold text-foreground">Shop by Brand</h2>
+          <p className="text-sm text-muted-foreground mt-1">Swipe, drag, or use arrows—instant filters.</p>
+        </div>
+      </div>
+
       {/* Left Arrow */}
-      <Button
-        variant="outline"
-        size="icon"
-        className="absolute left-2 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-background/90 shadow-md hidden sm:flex"
-        onClick={() => scrollByAmount('left')}
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </Button>
+      <Magnetic strength={10}>
+        <Button
+          variant="outline"
+          size="icon"
+          className="absolute left-2 top-1/2 -translate-y-1/2 z-10 h-9 w-9 rounded-full bg-background/70 backdrop-blur-md shadow-card hidden sm:flex"
+          onClick={() => scrollByAmount('left')}
+          aria-label="Scroll brands left"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+      </Magnetic>
 
       <div 
         ref={scrollRef}
@@ -179,15 +200,18 @@ const BrandMarquee = () => {
       </div>
 
       {/* Right Arrow */}
-      <Button
-        variant="outline"
-        size="icon"
-        className="absolute right-2 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-background/90 shadow-md hidden sm:flex"
-        onClick={() => scrollByAmount('right')}
-      >
-        <ChevronRight className="h-4 w-4" />
-      </Button>
-    </section>
+      <Magnetic strength={10}>
+        <Button
+          variant="outline"
+          size="icon"
+          className="absolute right-2 top-1/2 -translate-y-1/2 z-10 h-9 w-9 rounded-full bg-background/70 backdrop-blur-md shadow-card hidden sm:flex"
+          onClick={() => scrollByAmount('right')}
+          aria-label="Scroll brands right"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </Magnetic>
+    </motion.section>
   );
 };
 
