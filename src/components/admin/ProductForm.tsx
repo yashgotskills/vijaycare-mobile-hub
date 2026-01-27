@@ -90,7 +90,13 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
         .upload(fileName, file);
 
       if (error) {
-        toast.error(`Failed to upload ${file.name}`);
+        console.error("Upload error:", error);
+        const errorMessage = error.message?.includes("Payload too large") 
+          ? `${file.name} is too large. Max size is 5MB.`
+          : error.message?.includes("mime type") 
+            ? `${file.name} is not a supported image format.`
+            : `Failed to upload ${file.name}: ${error.message || "Unknown error"}`;
+        toast.error(errorMessage);
         continue;
       }
 
@@ -168,7 +174,22 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
       onSuccess();
     } catch (error: any) {
       console.error("Product save error:", error);
-      toast.error(error.message || "Failed to save product. Please try again.");
+      let errorMessage = "Failed to save product. Please try again.";
+      
+      if (error.message?.includes("duplicate key")) {
+        errorMessage = "A product with this slug already exists. Please use a different name/slug.";
+      } else if (error.message?.includes("violates row-level security")) {
+        errorMessage = "Permission denied. Please ensure you're logged in as admin.";
+      } else if (error.message?.includes("violates foreign key")) {
+        errorMessage = "Invalid category selected. Please choose a valid category.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage, {
+        description: "Check the form fields and try again.",
+        duration: 5000
+      });
     } finally {
       setLoading(false);
     }
