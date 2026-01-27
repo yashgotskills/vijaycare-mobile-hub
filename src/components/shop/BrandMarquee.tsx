@@ -135,7 +135,8 @@ const BrandMarquee = () => {
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (!scrollRef.current) return;
+    if (!isDragging || !scrollRef.current) return;
+    e.preventDefault();
     const x = e.touches[0].pageX - scrollRef.current.offsetLeft;
     const walk = (x - startX) * 2;
     scrollRef.current.scrollLeft = scrollLeft - walk;
@@ -180,8 +181,8 @@ const BrandMarquee = () => {
 
       <div 
         ref={scrollRef}
-        className="flex gap-4 overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing px-12"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        className="flex gap-4 overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing px-12 touch-pan-x"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
