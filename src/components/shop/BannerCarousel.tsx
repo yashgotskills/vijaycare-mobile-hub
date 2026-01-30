@@ -116,7 +116,7 @@ const BannerCarousel = () => {
             <motion.img
               src={banners[currentIndex].image_url}
               alt={banners[currentIndex].title}
-              className="w-full h-full object-cover object-center"
+              className="w-full h-full object-cover object-bottom"
               initial={reduceMotion ? { scale: 1 } : { scale: 1.03 }}
               animate={reduceMotion ? { scale: 1 } : { scale: 1 }}
               transition={{
