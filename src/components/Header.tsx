@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Phone, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import logo from "@/assets/logo.png";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -39,9 +40,7 @@ const Header = () => {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <a href="#home" className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-primary-gradient flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-xl">V</span>
-              </div>
+              <img src={logo} alt="VijayCare" className="w-10 h-10" />
               <span className="font-display font-bold text-lg sm:text-xl text-foreground">
                 Vijay<span className="text-gradient">Care</span>
               </span>
