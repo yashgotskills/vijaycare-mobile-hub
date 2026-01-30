@@ -13,7 +13,7 @@ const ShopPage = () => {
     <div className="min-h-screen bg-background">
       <ShopHeader />
       
-      <main className="pt-32 md:pt-20">
+      <main style={{ paddingTop: "var(--shop-header-height, 0px)" }}>
         {/* Banner Carousel - Full Width */}
         <ScrollReveal as="section" className="w-full">
           <BannerCarousel />
