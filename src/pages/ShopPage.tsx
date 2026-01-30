@@ -16,8 +16,8 @@ const ShopPage = () => {
       <ShopHeader />
       
       <main>
-        {/* Banner Carousel */}
-        <ScrollReveal as="section" className="container mx-auto px-4 py-8">
+        {/* Banner Carousel - Full Width */}
+        <ScrollReveal as="section" className="w-full">
           <BannerCarousel />
         </ScrollReveal>
 
