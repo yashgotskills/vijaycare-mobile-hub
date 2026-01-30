@@ -60,8 +60,8 @@ const BrandMarquee = () => {
   const [scrollLeft, setScrollLeft] = useState(0);
   const dragStartTime = useRef(0);
 
-  // Double brands for seamless loop
-  const allBrands = [...brands, ...brands, ...brands];
+  // Double brands for seamless loop (only 2 sets needed)
+  const allBrands = [...brands, ...brands];
 
   // Auto-scroll effect
   useEffect(() => {
@@ -75,20 +75,17 @@ const BrandMarquee = () => {
       if (scrollContainer && !isPaused && !isDragging) {
         scrollContainer.scrollLeft += scrollSpeed;
         
-        // Reset scroll position for infinite loop
-        const singleSetWidth = scrollContainer.scrollWidth / 3;
-        if (scrollContainer.scrollLeft >= singleSetWidth * 2) {
-          scrollContainer.scrollLeft = singleSetWidth;
-        } else if (scrollContainer.scrollLeft <= 0) {
-          scrollContainer.scrollLeft = singleSetWidth;
+        // Reset scroll position for infinite loop - when we reach end of first set, jump back to start
+        const singleSetWidth = scrollContainer.scrollWidth / 2;
+        if (scrollContainer.scrollLeft >= singleSetWidth) {
+          scrollContainer.scrollLeft = 0;
         }
       }
       animationId = requestAnimationFrame(animate);
     };
 
-    // Initialize scroll position to middle set
-    const singleSetWidth = scrollContainer.scrollWidth / 3;
-    scrollContainer.scrollLeft = singleSetWidth;
+    // Start from the beginning
+    scrollContainer.scrollLeft = 0;
 
     animationId = requestAnimationFrame(animate);
 
