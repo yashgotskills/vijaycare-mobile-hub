@@ -1,5 +1,4 @@
 import ShopHeader from "@/components/shop/ShopHeader";
-import CouponBanner from "@/components/shop/CouponBanner";
 import BannerCarousel from "@/components/shop/BannerCarousel";
 import BrandMarquee from "@/components/shop/BrandMarquee";
 import CategoryGrid from "@/components/shop/CategoryGrid";
@@ -12,10 +11,9 @@ import ScrollReveal from "@/components/motion/ScrollReveal";
 const ShopPage = () => {
   return (
     <div className="min-h-screen bg-background">
-      <CouponBanner />
       <ShopHeader />
       
-      <main>
+      <main className="pt-16 md:pt-20">
         {/* Banner Carousel - Full Width */}
         <ScrollReveal as="section" className="w-full">
           <BannerCarousel />
