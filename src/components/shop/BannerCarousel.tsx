@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,7 +26,9 @@ const fallbackBanners = [
 const BannerCarousel = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [banners, setBanners] = useState<Banner[]>(fallbackBanners);
+  const [isPaused, setIsPaused] = useState(false);
   const reduceMotion = useReducedMotion();
+  const pauseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     fetchBanners();
@@ -44,25 +46,48 @@ const BannerCarousel = () => {
     }
   };
 
+  // Pause auto-scroll temporarily after user interaction
+  const pauseAutoScroll = () => {
+    setIsPaused(true);
+    if (pauseTimeoutRef.current) {
+      clearTimeout(pauseTimeoutRef.current);
+    }
+    pauseTimeoutRef.current = setTimeout(() => {
+      setIsPaused(false);
+    }, 8000); // Resume after 8 seconds of no interaction
+  };
+
   useEffect(() => {
-    if (banners.length === 0) return;
+    if (banners.length === 0 || isPaused) return;
     
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % banners.length);
     }, 4000);
     return () => clearInterval(interval);
-  }, [banners.length]);
+  }, [banners.length, isPaused]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (pauseTimeoutRef.current) {
+        clearTimeout(pauseTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const goToSlide = (index: number) => {
     setCurrentIndex(index);
+    pauseAutoScroll();
   };
 
   const goToPrev = () => {
     setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
+    pauseAutoScroll();
   };
 
   const goToNext = () => {
     setCurrentIndex((prev) => (prev + 1) % banners.length);
+    pauseAutoScroll();
   };
 
   const handleBannerClick = () => {

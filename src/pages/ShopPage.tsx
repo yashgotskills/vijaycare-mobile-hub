@@ -4,10 +4,7 @@ import BannerCarousel from "@/components/shop/BannerCarousel";
 import BrandMarquee from "@/components/shop/BrandMarquee";
 import CategoryGrid from "@/components/shop/CategoryGrid";
 import TrustBadges from "@/components/shop/TrustBadges";
-import FlashSale from "@/components/shop/FlashSale";
-import FeaturedProducts from "@/components/shop/FeaturedProducts";
-import BestSellers from "@/components/shop/BestSellers";
-import NewArrivals from "@/components/shop/NewArrivals";
+import HotDeals from "@/components/shop/HotDeals";
 import CompareFloatingButton from "@/components/shop/CompareFloatingButton";
 import Footer from "@/components/Footer";
 import ScrollReveal from "@/components/motion/ScrollReveal";
@@ -33,17 +30,8 @@ const ShopPage = () => {
         {/* Brand Marquee */}
         <BrandMarquee />
 
-        {/* Flash Sale */}
-        <FlashSale />
-
-        {/* Featured Products */}
-        <FeaturedProducts />
-
-        {/* Best Sellers */}
-        <BestSellers />
-
-        {/* New Arrivals */}
-        <NewArrivals />
+        {/* Hot Deals - Combined Flash Sale, Featured, Bestsellers, New Arrivals */}
+        <HotDeals />
       </main>
 
       <CompareFloatingButton />
