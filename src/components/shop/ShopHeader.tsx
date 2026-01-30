@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ShoppingCart, User, Heart, Menu, X, LogOut, Wrench, Shield } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -15,6 +15,7 @@ const ShopHeader = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showAdminAccess, setShowAdminAccess] = useState(false);
   const [tapCount, setTapCount] = useState(0);
+  const headerRef = useRef<HTMLElement | null>(null);
   const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const longPressTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
@@ -60,8 +61,26 @@ const ShopHeader = () => {
     navigate("/");
   };
 
+  // Expose the real header height to the page (prevents content being covered by sticky header)
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+
+    const update = () => {
+      document.documentElement.style.setProperty("--shop-header-height", `${el.offsetHeight}px`);
+    };
+
+    update();
+    const ro = new ResizeObserver(() => update());
+    ro.observe(el);
+
+    return () => {
+      ro.disconnect();
+    };
+  }, []);
+
   return (
-    <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border/50">
+    <header ref={headerRef} className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border/50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 gap-4">
           {/* Logo with secret tap/long-press */}

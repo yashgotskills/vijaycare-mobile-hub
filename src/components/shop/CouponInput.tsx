@@ -65,21 +65,7 @@ const CouponInput = ({ subtotal, onApply, onRemove, appliedCode, appliedDiscount
         return;
       }
 
-      // Check if this is a first-order coupon (NEW1) and user has previous orders
-      if (coupon.code === "NEW1" && userPhone) {
-        const { data: existingOrders, error: ordersError } = await supabase
-          .from("orders")
-          .select("id")
-          .eq("user_phone", userPhone)
-          .limit(1);
-
-        if (ordersError) {
-          console.error("Error checking orders:", ordersError);
-        } else if (existingOrders && existingOrders.length > 0) {
-          toast.error("This coupon is only valid for first-time customers");
-          return;
-        }
-      }
+      // Coupon-specific rules can be added here if needed.
 
       // Calculate discount
       let discount = 0;
