@@ -10,16 +10,16 @@ interface ProductGridProps {
 
 const ProductGrid = ({ products, isLoading, columns = 6 }: ProductGridProps) => {
   const gridCols = {
-    2: "grid-cols-2",
-    3: "grid-cols-2 md:grid-cols-3",
-    4: "grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
-    5: "grid-cols-2 md:grid-cols-3 lg:grid-cols-5",
-    6: "grid-cols-2 md:grid-cols-3 lg:grid-cols-6",
+    2: "grid-cols-2 gap-3 sm:gap-4",
+    3: "grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4",
+    4: "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4",
+    5: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4",
+    6: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4",
   };
 
   if (isLoading) {
     return (
-      <div className={`grid ${gridCols[columns]} gap-4`}>
+      <div className={`grid ${gridCols[columns]}`}>
         {Array.from({ length: columns * 2 }).map((_, i) => (
           <div key={i} className="bg-card border border-border/50 rounded-xl overflow-hidden">
             <Skeleton className="aspect-square" />
@@ -43,7 +43,7 @@ const ProductGrid = ({ products, isLoading, columns = 6 }: ProductGridProps) => 
   }
 
   return (
-    <div className={`grid ${gridCols[columns]} gap-4`}>
+    <div className={`grid ${gridCols[columns]}`}>
       {products.map((product, index) => (
         <ProductCard key={product.id} product={product} index={index} />
       ))}

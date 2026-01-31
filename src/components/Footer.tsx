@@ -46,8 +46,8 @@ const Footer = React.forwardRef<HTMLElement>((_, ref) => {
       <div aria-hidden className="absolute inset-0 bg-ambient-mesh opacity-[0.22]" />
       <div aria-hidden className="absolute inset-0 bg-vignette" />
 
-      <div className="container mx-auto px-4 py-16 relative">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+      <div className="container mx-auto px-4 py-10 md:py-16 relative">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
           {/* Brand */}
           <div>
             <div className="flex items-center gap-3 mb-4">
@@ -149,12 +149,12 @@ const Footer = React.forwardRef<HTMLElement>((_, ref) => {
 
       {/* Bottom bar */}
       <div className="border-t border-border/60 relative">
-        <div className="container mx-auto px-4 py-6 relative">
+        <div className="container mx-auto px-4 py-4 md:py-6 relative">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-muted-foreground text-sm">
+            <p className="text-muted-foreground text-sm text-center md:text-left">
               © {new Date().getFullYear()} VijayCare. All rights reserved.
             </p>
-            <div className="flex gap-6 text-sm items-center">
+            <div className="flex flex-wrap justify-center gap-4 md:gap-6 text-sm items-center">
               <a href="#" className="text-muted-foreground hover:text-foreground">
                 Privacy Policy
               </a>

@@ -96,16 +96,16 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
           </Badge>
         )}
 
-        {/* Action buttons */}
+        {/* Action buttons - always visible on touch, hover on desktop */}
         <div className="absolute top-2 right-2 flex flex-col gap-1">
           <Magnetic strength={8}>
             <button
               onClick={handleToggleWishlist}
               aria-label={isInWishlist(numericId) ? "Remove from wishlist" : "Add to wishlist"}
-              className={`p-1.5 rounded-full backdrop-blur-md border border-border/60 transition-all ${
+              className={`p-2 sm:p-1.5 rounded-full backdrop-blur-md border border-border/60 transition-all ${
                 isInWishlist(numericId)
                   ? "bg-destructive text-destructive-foreground"
-                  : "bg-background/70 opacity-0 group-hover:opacity-100 hover:bg-background/90"
+                  : "bg-background/70 sm:opacity-0 sm:group-hover:opacity-100 hover:bg-background/90"
               }`}
             >
               <Heart className={`h-4 w-4 ${isInWishlist(numericId) ? "fill-current" : ""}`} />
@@ -118,7 +118,7 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
                 navigate(`/product/${product.slug}`);
               }}
               aria-label="View details"
-              className="p-1.5 rounded-full bg-background/70 backdrop-blur-md border border-border/60 opacity-0 group-hover:opacity-100 hover:bg-background/90 transition-all"
+              className="p-2 sm:p-1.5 rounded-full bg-background/70 backdrop-blur-md border border-border/60 sm:opacity-0 sm:group-hover:opacity-100 hover:bg-background/90 transition-all"
             >
               <Eye className="h-4 w-4" />
             </button>
