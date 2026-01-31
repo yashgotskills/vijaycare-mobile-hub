@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 // New full-width banners
-import bannerIphoneCases from "@/assets/banner-iphone-cases-new.png";
+import bannerIphone16HotDeals from "@/assets/banner-iphone-16-hot-deals.png";
 import bannerAerobuds from "@/assets/banner-aerobuds-new.png";
 import bannerPowerBank from "@/assets/banner-powerbank-new.png";
 
@@ -16,7 +16,7 @@ interface Banner {
 }
 
 const fallbackBanners = [
-  { id: "1", title: "iPhone 16 Hot Deals", image_url: bannerIphoneCases, link: null },
+  { id: "1", title: "iPhone 16 Hot Deals", image_url: bannerIphone16HotDeals, link: null },
   { id: "2", title: "Aerobuds", image_url: bannerAerobuds, link: null },
   { id: "3", title: "Power Banks", image_url: bannerPowerBank, link: null },
 ];
