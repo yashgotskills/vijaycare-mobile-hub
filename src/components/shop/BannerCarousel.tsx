@@ -59,7 +59,7 @@ const BannerCarousel = () => {
     
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % banners.length);
-    }, 4000);
+    }, 3600000); // 1 hour
     return () => clearInterval(interval);
   }, [banners.length, isPaused]);
 
