@@ -10,6 +10,7 @@ import ScrollToTop from "./components/ScrollToTop";
 import AmbientBackground from "@/components/motion/AmbientBackground";
 import PageTransition from "@/components/motion/PageTransition";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import ShopPage from "./pages/ShopPage";
 import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
@@ -41,6 +42,7 @@ const App = () => (
               <BrowserRouter>
                 <ScrollToTop />
                 <AmbientBackground />
+                <PWAInstallPrompt />
                 <Routes>
                  <Route
                    path="/"
