@@ -55,14 +55,17 @@ const BrandMarquee = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
   const [isPaused, setIsPaused] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const isTouchingRef = useRef(false);
   const dragStartTimeRef = useRef(0);
   const dragDistanceRef = useRef(0);
+  const mouseStartXRef = useRef(0);
+  const scrollStartRef = useRef(0);
 
   // Double brands for seamless loop (only 2 sets needed)
   const allBrands = [...brands, ...brands];
 
-  // Auto-scroll effect - only runs when not paused and not touching
+  // Auto-scroll effect - only runs when not paused and not touching/dragging
   useEffect(() => {
     if (!scrollRef.current || reduceMotion) return;
 
@@ -71,8 +74,8 @@ const BrandMarquee = () => {
     const scrollSpeed = 0.5;
 
     const animate = () => {
-      // Only auto-scroll if not paused and not being touched
-      if (scrollContainer && !isPaused && !isTouchingRef.current) {
+      // Only auto-scroll if not paused and not being touched/dragged
+      if (scrollContainer && !isPaused && !isTouchingRef.current && !isDragging) {
         scrollContainer.scrollLeft += scrollSpeed;
         
         // Reset scroll position for infinite loop
@@ -87,7 +90,7 @@ const BrandMarquee = () => {
     animationId = requestAnimationFrame(animate);
 
     return () => cancelAnimationFrame(animationId);
-  }, [isPaused, reduceMotion]);
+  }, [isPaused, reduceMotion, isDragging]);
 
   const handleBrandClick = (slug: string, name: string) => {
     // Only navigate if it was a quick tap with minimal drag distance
@@ -97,9 +100,33 @@ const BrandMarquee = () => {
     }
   };
 
-  // Mouse handlers for desktop
+  // Mouse handlers for desktop drag
   const handleMouseEnter = () => setIsPaused(true);
-  const handleMouseLeave = () => setIsPaused(false);
+  const handleMouseLeave = () => {
+    setIsPaused(false);
+    setIsDragging(false);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollRef.current) return;
+    setIsDragging(true);
+    dragStartTimeRef.current = Date.now();
+    dragDistanceRef.current = 0;
+    mouseStartXRef.current = e.pageX;
+    scrollStartRef.current = scrollRef.current.scrollLeft;
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !scrollRef.current) return;
+    e.preventDefault();
+    const walk = (e.pageX - mouseStartXRef.current) * 1.5;
+    dragDistanceRef.current = Math.abs(walk);
+    scrollRef.current.scrollLeft = scrollStartRef.current - walk;
+  };
 
   // Touch handlers - let native scroll handle the movement
   const handleTouchStart = () => {
@@ -109,11 +136,10 @@ const BrandMarquee = () => {
   };
 
   const handleTouchMove = () => {
-    dragDistanceRef.current += 5; // Increment to track that dragging occurred
+    dragDistanceRef.current += 5;
   };
 
   const handleTouchEnd = () => {
-    // Delay resetting to prevent scroll jump
     setTimeout(() => {
       isTouchingRef.current = false;
     }, 100);
@@ -158,8 +184,12 @@ const BrandMarquee = () => {
 
       <div 
         ref={scrollRef}
-        className="flex gap-4 overflow-x-auto scrollbar-hide px-12 touch-pan-x"
+        className="flex gap-4 overflow-x-auto scrollbar-hide px-12 touch-pan-x cursor-grab active:cursor-grabbing"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        onMouseMove={handleMouseMove}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         onTouchMove={handleTouchMove}
