@@ -340,17 +340,17 @@ const ProductDetailPage = () => {
             </div>
 
             {/* Trust badges */}
-            <div className="grid grid-cols-3 gap-4 pt-6 border-t border-border">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 pt-6 border-t border-border">
               <div className="flex items-center gap-2 text-sm">
-                <Truck className="h-5 w-5 text-primary" />
+                <Truck className="h-5 w-5 text-primary flex-shrink-0" />
                 <span className="text-muted-foreground">Free Delivery</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <Shield className="h-5 w-5 text-primary" />
+                <Shield className="h-5 w-5 text-primary flex-shrink-0" />
                 <span className="text-muted-foreground">Genuine Product</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <RefreshCw className="h-5 w-5 text-primary" />
+                <RefreshCw className="h-5 w-5 text-primary flex-shrink-0" />
                 <span className="text-muted-foreground">Easy Returns</span>
               </div>
             </div>
@@ -358,23 +358,23 @@ const ProductDetailPage = () => {
         </div>
 
         {/* Tabs: Description, Specifications, Reviews */}
-        <Tabs defaultValue="description" className="mt-12">
-          <TabsList className="w-full justify-start border-b border-border bg-transparent p-0 h-auto">
+        <Tabs defaultValue="description" className="mt-8 md:mt-12">
+          <TabsList className="w-full justify-start border-b border-border bg-transparent p-0 h-auto overflow-x-auto">
             <TabsTrigger 
               value="description"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-3"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 sm:px-6 py-3 text-sm sm:text-base whitespace-nowrap"
             >
               Description
             </TabsTrigger>
             <TabsTrigger 
               value="specifications"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-3"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 sm:px-6 py-3 text-sm sm:text-base whitespace-nowrap"
             >
-              Specifications
+              Specs
             </TabsTrigger>
             <TabsTrigger 
               value="reviews"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-3"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 sm:px-6 py-3 text-sm sm:text-base whitespace-nowrap"
             >
               Reviews ({product.review_count})
             </TabsTrigger>

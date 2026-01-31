@@ -97,16 +97,16 @@ const HotDeals = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-4 flex-wrap">
-            {/* Deal Tags */}
-            <div className="hidden sm:flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
+          <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+            {/* Deal Tags - scrollable on small mobile */}
+            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 -mb-1">
+              <span className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full whitespace-nowrap">
                 <Zap className="h-3 w-3" /> Flash
               </span>
-              <span className="inline-flex items-center gap-1 px-2 py-1 bg-orange-500/10 text-orange-600 text-xs font-medium rounded-full">
-                <TrendingUp className="h-3 w-3" /> Bestseller
+              <span className="inline-flex items-center gap-1 px-2 py-1 bg-orange-500/10 text-orange-600 text-xs font-medium rounded-full whitespace-nowrap">
+                <TrendingUp className="h-3 w-3" /> Best
               </span>
-              <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-500/10 text-green-600 text-xs font-medium rounded-full">
+              <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-500/10 text-green-600 text-xs font-medium rounded-full whitespace-nowrap">
                 <Sparkles className="h-3 w-3" /> New
               </span>
             </div>
@@ -117,24 +117,24 @@ const HotDeals = () => {
               whileInView={reduceMotion ? undefined : { opacity: 1, y: 0, filter: "blur(0px)" }}
               viewport={{ once: true, margin: "-80px" }}
               transition={reduceMotion ? undefined : { duration: 0.55, ease: "easeOut", delay: 0.06 }}
-              className="flex items-center gap-2"
+              className="flex items-center gap-1.5 sm:gap-2"
             >
-              <span className="text-sm text-muted-foreground">Ends in</span>
-              <div className="flex gap-1 items-center">
+              <span className="text-xs sm:text-sm text-muted-foreground hidden xs:inline">Ends in</span>
+              <div className="flex gap-0.5 sm:gap-1 items-center">
                 <Magnetic strength={10}>
-                  <div className="bg-foreground text-background px-3 py-2 rounded-xl font-mono font-bold shadow-card">
+                  <div className="bg-foreground text-background px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl font-mono font-bold text-sm sm:text-base shadow-card">
                     {formatTime(timeLeft.hours)}
                   </div>
                 </Magnetic>
-                <span className="text-foreground/80 font-bold text-xl">:</span>
+                <span className="text-foreground/80 font-bold text-base sm:text-xl">:</span>
                 <Magnetic strength={10}>
-                  <div className="bg-foreground text-background px-3 py-2 rounded-xl font-mono font-bold shadow-card">
+                  <div className="bg-foreground text-background px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl font-mono font-bold text-sm sm:text-base shadow-card">
                     {formatTime(timeLeft.minutes)}
                   </div>
                 </Magnetic>
-                <span className="text-foreground/80 font-bold text-xl">:</span>
+                <span className="text-foreground/80 font-bold text-base sm:text-xl">:</span>
                 <Magnetic strength={10}>
-                  <div className="bg-foreground text-background px-3 py-2 rounded-xl font-mono font-bold shadow-card">
+                  <div className="bg-foreground text-background px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl font-mono font-bold text-sm sm:text-base shadow-card">
                     {formatTime(timeLeft.seconds)}
                   </div>
                 </Magnetic>
