@@ -54,89 +54,69 @@ const BrandMarquee = () => {
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
-  const [isDragging, setIsDragging] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
-  const dragStartTime = useRef(0);
+  const isTouchingRef = useRef(false);
+  const dragStartTimeRef = useRef(0);
+  const dragDistanceRef = useRef(0);
 
   // Double brands for seamless loop (only 2 sets needed)
   const allBrands = [...brands, ...brands];
 
-  // Auto-scroll effect
+  // Auto-scroll effect - only runs when not paused and not touching
   useEffect(() => {
-    if (!scrollRef.current || isPaused || isDragging) return;
+    if (!scrollRef.current || reduceMotion) return;
 
     const scrollContainer = scrollRef.current;
     let animationId: number;
     const scrollSpeed = 0.5;
 
     const animate = () => {
-      if (scrollContainer && !isPaused && !isDragging) {
+      // Only auto-scroll if not paused and not being touched
+      if (scrollContainer && !isPaused && !isTouchingRef.current) {
         scrollContainer.scrollLeft += scrollSpeed;
         
-        // Reset scroll position for infinite loop - when we reach end of first set, jump back to start
+        // Reset scroll position for infinite loop
         const singleSetWidth = scrollContainer.scrollWidth / 2;
         if (scrollContainer.scrollLeft >= singleSetWidth) {
-          scrollContainer.scrollLeft = 0;
+          scrollContainer.scrollLeft = scrollContainer.scrollLeft - singleSetWidth;
         }
       }
       animationId = requestAnimationFrame(animate);
     };
 
-    // Start from the beginning
-    scrollContainer.scrollLeft = 0;
-
     animationId = requestAnimationFrame(animate);
 
     return () => cancelAnimationFrame(animationId);
-  }, [isPaused, isDragging]);
+  }, [isPaused, reduceMotion]);
 
   const handleBrandClick = (slug: string, name: string) => {
-    // Only navigate if it was a quick tap, not a drag
-    if (Date.now() - dragStartTime.current < 200) {
+    // Only navigate if it was a quick tap with minimal drag distance
+    const timeDiff = Date.now() - dragStartTimeRef.current;
+    if (timeDiff < 200 && dragDistanceRef.current < 10) {
       navigate(`/search?brand=${slug}&q=${encodeURIComponent(name)}`);
     }
   };
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!scrollRef.current) return;
-    setIsDragging(true);
-    dragStartTime.current = Date.now();
-    setStartX(e.pageX - scrollRef.current.offsetLeft);
-    setScrollLeft(scrollRef.current.scrollLeft);
+  // Mouse handlers for desktop
+  const handleMouseEnter = () => setIsPaused(true);
+  const handleMouseLeave = () => setIsPaused(false);
+
+  // Touch handlers - let native scroll handle the movement
+  const handleTouchStart = () => {
+    isTouchingRef.current = true;
+    dragStartTimeRef.current = Date.now();
+    dragDistanceRef.current = 0;
   };
 
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !scrollRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - scrollRef.current.offsetLeft;
-    const walk = (x - startX) * 2;
-    scrollRef.current.scrollLeft = scrollLeft - walk;
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (!scrollRef.current) return;
-    setIsDragging(true);
-    dragStartTime.current = Date.now();
-    setStartX(e.touches[0].pageX - scrollRef.current.offsetLeft);
-    setScrollLeft(scrollRef.current.scrollLeft);
+  const handleTouchMove = () => {
+    dragDistanceRef.current += 5; // Increment to track that dragging occurred
   };
 
   const handleTouchEnd = () => {
-    setIsDragging(false);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging || !scrollRef.current) return;
-    e.preventDefault();
-    const x = e.touches[0].pageX - scrollRef.current.offsetLeft;
-    const walk = (x - startX) * 2;
-    scrollRef.current.scrollLeft = scrollLeft - walk;
+    // Delay resetting to prevent scroll jump
+    setTimeout(() => {
+      isTouchingRef.current = false;
+    }, 100);
   };
 
   const scrollByAmount = (direction: 'left' | 'right') => {
@@ -153,8 +133,8 @@ const BrandMarquee = () => {
       viewport={{ once: true, margin: "-80px" }}
       transition={reduceMotion ? undefined : { duration: 0.65, ease: "easeOut" }}
       className="bg-card/40 backdrop-blur-md py-10 md:py-12 border-y border-border/40 relative"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       <div className="container mx-auto px-4 mb-5 flex items-end justify-between">
         <div>
@@ -178,12 +158,8 @@ const BrandMarquee = () => {
 
       <div 
         ref={scrollRef}
-        className="flex gap-4 overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing px-12 touch-pan-x"
+        className="flex gap-4 overflow-x-auto scrollbar-hide px-12 touch-pan-x"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        onMouseMove={handleMouseMove}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         onTouchMove={handleTouchMove}
