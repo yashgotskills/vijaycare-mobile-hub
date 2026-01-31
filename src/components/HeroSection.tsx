@@ -11,19 +11,20 @@ const HeroSection = () => {
   ];
 
   return (
-    <section id="home" className="relative min-h-screen flex items-center overflow-hidden">
+    <section id="home" className="relative w-full">
       {/* Background */}
-      <div className="absolute inset-0">
+      <div className="relative w-full">
         <img
           src={heroBg}
           alt="Mobile accessories"
-          className="w-full h-full object-cover"
+          className="w-full h-auto object-contain"
         />
         <div className="absolute inset-0 bg-hero-gradient opacity-80" />
       </div>
 
       {/* Content */}
-      <div className="container mx-auto px-4 pt-32 pb-20 relative z-10">
+      <div className="absolute inset-0 flex items-center">
+        <div className="container mx-auto px-4 py-12 relative z-10">
         <div className="max-w-3xl">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -90,22 +91,7 @@ const HeroSection = () => {
           </motion.div>
         </div>
       </div>
-
-      {/* Scroll indicator */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2"
-      >
-        <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-          className="w-6 h-10 rounded-full border-2 border-primary-foreground/30 flex items-start justify-center p-2"
-        >
-          <div className="w-1.5 h-3 rounded-full bg-accent" />
-        </motion.div>
-      </motion.div>
+    </div>
     </section>
   );
 };
