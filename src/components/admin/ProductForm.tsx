@@ -137,37 +137,31 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
     };
 
     try {
-      // Set user context for RLS policy - must be done fresh for each operation
       const userPhone = localStorage.getItem("vijaycare_user");
       if (!userPhone) {
         toast.error("Please login first");
         setLoading(false);
         return;
       }
-      
-      // Set context and wait for it to complete
-      const { error: contextError } = await supabase.rpc("set_user_context" as any, { user_phone: userPhone });
-      if (contextError) {
-        console.error("Context error:", contextError);
-        toast.error("Session error. Please refresh and try again.");
-        setLoading(false);
-        return;
-      }
 
       if (product) {
-        const { error } = await supabase
-          .from("products")
-          .update(productData)
-          .eq("id", product.id);
+        const { data, error } = await supabase.rpc("admin_update_product" as any, {
+          _admin_phone: userPhone,
+          _product_id: product.id,
+          _product_data: productData,
+        });
 
         if (error) throw error;
+        if (data && !(data as any).success) throw new Error((data as any).error);
         toast.success("Product updated successfully");
       } else {
-        const { error } = await supabase
-          .from("products")
-          .insert([productData]);
+        const { data, error } = await supabase.rpc("admin_insert_product" as any, {
+          _admin_phone: userPhone,
+          _product_data: productData,
+        });
 
         if (error) throw error;
+        if (data && !(data as any).success) throw new Error((data as any).error);
         toast.success("Product added successfully");
       }
 

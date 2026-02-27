@@ -67,20 +67,10 @@ const ProductsTab = ({ products, categories, loading, onRefresh }: ProductsTabPr
     }
     
     try {
-      // Set user context for RLS policy
-      const { error: contextError } = await supabase.rpc("set_user_context" as any, { user_phone: userPhone });
-      
-      if (contextError) {
-        console.error("Context error:", contextError);
-        toast.error("Failed to set admin context: " + contextError.message);
-        setDeleteProduct(null);
-        return;
-      }
-      
-      const { error } = await supabase
-        .from("products")
-        .delete()
-        .eq("id", deleteProduct.id);
+      const { data, error } = await supabase.rpc("admin_delete_product" as any, {
+        _admin_phone: userPhone,
+        _product_id: deleteProduct.id,
+      });
 
       if (error) {
         console.error("Delete error:", error);
@@ -88,6 +78,8 @@ const ProductsTab = ({ products, categories, loading, onRefresh }: ProductsTabPr
           description: `Product: ${deleteProduct.name}. Error code: ${error.code}`,
           duration: 5000
         });
+      } else if (data && !(data as any).success) {
+        toast.error("Failed to delete product: " + (data as any).error);
       } else {
         toast.success("Product deleted successfully");
         onRefresh();

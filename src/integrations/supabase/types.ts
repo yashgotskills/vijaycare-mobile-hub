@@ -562,6 +562,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_delete_product: {
+        Args: { _admin_phone: string; _product_id: string }
+        Returns: Json
+      }
+      admin_insert_product: {
+        Args: { _admin_phone: string; _product_data: Json }
+        Returns: Json
+      }
+      admin_update_product: {
+        Args: { _admin_phone: string; _product_data: Json; _product_id: string }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
