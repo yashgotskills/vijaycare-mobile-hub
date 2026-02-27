@@ -562,12 +562,44 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_delete_banner: {
+        Args: { _admin_phone: string; _banner_id: string }
+        Returns: Json
+      }
+      admin_delete_category: {
+        Args: { _admin_phone: string; _category_id: string }
+        Returns: Json
+      }
       admin_delete_product: {
         Args: { _admin_phone: string; _product_id: string }
         Returns: Json
       }
+      admin_insert_banner: {
+        Args: { _admin_phone: string; _banner_data: Json }
+        Returns: Json
+      }
+      admin_insert_category: {
+        Args: { _admin_phone: string; _category_data: Json }
+        Returns: Json
+      }
       admin_insert_product: {
         Args: { _admin_phone: string; _product_data: Json }
+        Returns: Json
+      }
+      admin_update_banner: {
+        Args: { _admin_phone: string; _banner_data: Json; _banner_id: string }
+        Returns: Json
+      }
+      admin_update_category: {
+        Args: {
+          _admin_phone: string
+          _category_data: Json
+          _category_id: string
+        }
+        Returns: Json
+      }
+      admin_update_order_status: {
+        Args: { _admin_phone: string; _new_status: string; _order_id: string }
         Returns: Json
       }
       admin_update_product: {
