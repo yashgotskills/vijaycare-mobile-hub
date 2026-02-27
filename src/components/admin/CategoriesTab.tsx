@@ -117,9 +117,10 @@ const CategoriesTab = ({ categories, loading, onRefresh }: CategoriesTabProps) =
     setSaving(true);
     const userPhone = localStorage.getItem("vijaycare_user");
 
-    // Set user context for RLS
-    if (userPhone) {
-      await supabase.rpc("set_user_context" as any, { user_phone: userPhone });
+    if (!userPhone) {
+      toast.error("Admin session not found. Please log in again.");
+      setSaving(false);
+      return;
     }
 
     const categoryData = {
@@ -131,33 +132,33 @@ const CategoriesTab = ({ categories, loading, onRefresh }: CategoriesTabProps) =
       parent_id: formData.parent_id || null,
     };
 
-    if (editCategory) {
-      const { error } = await supabase
-        .from("categories")
-        .update(categoryData)
-        .eq("id", editCategory.id);
-
-      if (error) {
-        toast.error("Failed to update category");
-      } else {
+    try {
+      if (editCategory) {
+        const { data, error } = await supabase.rpc("admin_update_category" as any, {
+          _admin_phone: userPhone,
+          _category_id: editCategory.id,
+          _category_data: categoryData,
+        });
+        if (error) throw error;
+        if (data && !(data as any).success) throw new Error((data as any).error);
         toast.success("Category updated successfully");
         setEditCategory(null);
         resetForm();
         onRefresh();
-      }
-    } else {
-      const { error } = await supabase
-        .from("categories")
-        .insert(categoryData);
-
-      if (error) {
-        toast.error("Failed to create category");
       } else {
+        const { data, error } = await supabase.rpc("admin_insert_category" as any, {
+          _admin_phone: userPhone,
+          _category_data: categoryData,
+        });
+        if (error) throw error;
+        if (data && !(data as any).success) throw new Error((data as any).error);
         toast.success("Category created successfully");
         setIsAddOpen(false);
         resetForm();
         onRefresh();
       }
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to save category");
     }
     setSaving(false);
   };
@@ -166,22 +167,23 @@ const CategoriesTab = ({ categories, loading, onRefresh }: CategoriesTabProps) =
     if (!deleteCategory) return;
 
     const userPhone = localStorage.getItem("vijaycare_user");
-    
-    // Set user context for RLS
-    if (userPhone) {
-      await supabase.rpc("set_user_context" as any, { user_phone: userPhone });
+    if (!userPhone) {
+      toast.error("Admin session not found. Please log in again.");
+      setDeleteCategory(null);
+      return;
     }
 
-    const { error } = await supabase
-      .from("categories")
-      .delete()
-      .eq("id", deleteCategory.id);
-
-    if (error) {
-      toast.error("Failed to delete category. It may have products assigned.");
-    } else {
+    try {
+      const { data, error } = await supabase.rpc("admin_delete_category" as any, {
+        _admin_phone: userPhone,
+        _category_id: deleteCategory.id,
+      });
+      if (error) throw error;
+      if (data && !(data as any).success) throw new Error((data as any).error);
       toast.success("Category deleted successfully");
       onRefresh();
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to delete category");
     }
     setDeleteCategory(null);
   };

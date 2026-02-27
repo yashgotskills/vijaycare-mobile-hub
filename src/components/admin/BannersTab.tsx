@@ -59,33 +59,14 @@ const BannersTab = ({ loading, onRefresh }: BannersTabProps) => {
     fetchBanners();
   }, []);
 
-  const setUserContext = async () => {
-    const userPhone = localStorage.getItem("vijaycare_user");
-    if (userPhone) {
-      await supabase.rpc("set_user_context" as any, { user_phone: userPhone });
-    }
-  };
-
   const fetchBanners = async () => {
     setFetchLoading(true);
-    await setUserContext();
-    
     const { data, error } = await supabase
       .from("banners")
       .select("*")
       .order("display_order", { ascending: true });
 
-    if (error) {
-      // Try fetching all banners for admin view
-      const { data: allData, error: allError } = await supabase
-        .from("banners")
-        .select("*")
-        .order("display_order", { ascending: true });
-      
-      if (!allError) {
-        setBanners(allData || []);
-      }
-    } else {
+    if (!error) {
       setBanners(data || []);
     }
     setFetchLoading(false);
@@ -142,7 +123,12 @@ const BannersTab = ({ loading, onRefresh }: BannersTabProps) => {
     }
 
     setSaving(true);
-    await setUserContext();
+    const userPhone = localStorage.getItem("vijaycare_user");
+    if (!userPhone) {
+      toast.error("Admin session not found. Please log in again.");
+      setSaving(false);
+      return;
+    }
 
     const bannerData = {
       title,
@@ -154,19 +140,21 @@ const BannersTab = ({ loading, onRefresh }: BannersTabProps) => {
 
     try {
       if (editingBanner) {
-        const { error } = await supabase
-          .from("banners")
-          .update(bannerData)
-          .eq("id", editingBanner.id);
-
+        const { data, error } = await supabase.rpc("admin_update_banner" as any, {
+          _admin_phone: userPhone,
+          _banner_id: editingBanner.id,
+          _banner_data: bannerData,
+        });
         if (error) throw error;
+        if (data && !(data as any).success) throw new Error((data as any).error);
         toast.success("Banner updated!");
       } else {
-        const { error } = await supabase
-          .from("banners")
-          .insert([bannerData]);
-
+        const { data, error } = await supabase.rpc("admin_insert_banner" as any, {
+          _admin_phone: userPhone,
+          _banner_data: bannerData,
+        });
         if (error) throw error;
+        if (data && !(data as any).success) throw new Error((data as any).error);
         toast.success("Banner added!");
       }
 
@@ -184,33 +172,51 @@ const BannersTab = ({ loading, onRefresh }: BannersTabProps) => {
   const handleDelete = async () => {
     if (!deletingBanner) return;
 
-    await setUserContext();
-    const { error } = await supabase
-      .from("banners")
-      .delete()
-      .eq("id", deletingBanner.id);
+    const userPhone = localStorage.getItem("vijaycare_user");
+    if (!userPhone) {
+      toast.error("Admin session not found.");
+      setDeletingBanner(null);
+      return;
+    }
 
-    if (error) {
-      toast.error("Failed to delete banner");
-    } else {
+    try {
+      const { data, error } = await supabase.rpc("admin_delete_banner" as any, {
+        _admin_phone: userPhone,
+        _banner_id: deletingBanner.id,
+      });
+      if (error) throw error;
+      if (data && !(data as any).success) throw new Error((data as any).error);
       toast.success("Banner deleted!");
       fetchBanners();
       onRefresh();
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to delete banner");
     }
     setDeletingBanner(null);
   };
 
   const toggleBannerActive = async (banner: Banner) => {
-    await setUserContext();
-    const { error } = await supabase
-      .from("banners")
-      .update({ is_active: !banner.is_active })
-      .eq("id", banner.id);
+    const userPhone = localStorage.getItem("vijaycare_user");
+    if (!userPhone) return;
 
-    if (error) {
-      toast.error("Failed to update banner");
-    } else {
+    const bannerData = {
+      title: banner.title,
+      image_url: banner.image_url,
+      link: banner.link || null,
+      is_active: !banner.is_active,
+      display_order: banner.display_order,
+    };
+
+    try {
+      const { data, error } = await supabase.rpc("admin_update_banner" as any, {
+        _admin_phone: userPhone,
+        _banner_id: banner.id,
+        _banner_data: bannerData,
+      });
+      if (error) throw error;
       fetchBanners();
+    } catch {
+      toast.error("Failed to update banner");
     }
   };
 

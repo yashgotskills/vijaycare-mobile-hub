@@ -61,16 +61,24 @@ const OrdersTab = ({ orders, loading, onRefresh }: OrdersTabProps) => {
   const [filterStatus, setFilterStatus] = useState<string>("all");
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
-    const { error } = await supabase
-      .from("orders")
-      .update({ status: newStatus, updated_at: new Date().toISOString() })
-      .eq("id", orderId);
+    const userPhone = localStorage.getItem("vijaycare_user");
+    if (!userPhone) {
+      toast.error("Admin session not found.");
+      return;
+    }
 
-    if (error) {
-      toast.error("Failed to update status");
-    } else {
+    try {
+      const { data, error } = await supabase.rpc("admin_update_order_status" as any, {
+        _admin_phone: userPhone,
+        _order_id: orderId,
+        _new_status: newStatus,
+      });
+      if (error) throw error;
+      if (data && !(data as any).success) throw new Error((data as any).error);
       toast.success(`Order status updated to ${newStatus}`);
       onRefresh();
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to update status");
     }
   };
 
