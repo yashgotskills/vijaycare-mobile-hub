@@ -586,6 +586,25 @@ export type Database = {
         Args: { _admin_phone: string; _product_data: Json }
         Returns: Json
       }
+      admin_list_banners: {
+        Args: { _admin_phone: string }
+        Returns: {
+          created_at: string
+          display_order: number | null
+          id: string
+          image_url: string
+          is_active: boolean | null
+          link: string | null
+          title: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "banners"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       admin_update_banner: {
         Args: { _admin_phone: string; _banner_data: Json; _banner_id: string }
         Returns: Json
@@ -604,6 +623,10 @@ export type Database = {
       }
       admin_update_product: {
         Args: { _admin_phone: string; _product_data: Json; _product_id: string }
+        Returns: Json
+      }
+      admin_update_repair_status: {
+        Args: { _admin_phone: string; _new_status: string; _repair_id: string }
         Returns: Json
       }
       has_role: {

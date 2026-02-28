@@ -121,9 +121,6 @@ const AdminPage = () => {
       return;
     }
 
-    // Set user context for RLS
-    await supabase.rpc("set_user_context" as any, { user_phone: userPhone });
-
     const { data: roleData } = await supabase
       .from("user_roles")
       .select("role")

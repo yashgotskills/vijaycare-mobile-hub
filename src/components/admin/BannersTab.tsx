@@ -61,13 +61,19 @@ const BannersTab = ({ loading, onRefresh }: BannersTabProps) => {
 
   const fetchBanners = async () => {
     setFetchLoading(true);
-    const { data, error } = await supabase
-      .from("banners")
-      .select("*")
-      .order("display_order", { ascending: true });
+    const userPhone = localStorage.getItem("vijaycare_user");
+    if (!userPhone) {
+      setFetchLoading(false);
+      return;
+    }
+    
+    const { data, error } = await supabase.rpc("admin_list_banners" as any, {
+      _admin_phone: userPhone,
+    });
 
     if (!error) {
-      setBanners(data || []);
+      const sorted = (data || []).sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0));
+      setBanners(sorted as Banner[]);
     }
     setFetchLoading(false);
   };
