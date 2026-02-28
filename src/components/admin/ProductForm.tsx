@@ -24,7 +24,8 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import type { Product, Category } from "@/types/product";
+import type { Product, Category, Brand } from "@/types/product";
+import { useBrands } from "@/hooks/useProducts";
 
 const productSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -35,6 +36,7 @@ const productSchema = z.object({
   original_price: z.number().optional(),
   discount_percentage: z.number().min(0).max(100).optional(),
   category_id: z.string().optional(),
+  brand_id: z.string().optional(),
   sku: z.string().optional(),
   stock_quantity: z.number().min(0).default(0),
   is_featured: z.boolean().default(false),
@@ -51,6 +53,7 @@ interface ProductFormProps {
 }
 
 const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
+  const { data: brands = [] } = useBrands();
   const [loading, setLoading] = useState(false);
   const [images, setImages] = useState<string[]>(product?.images || []);
   const [uploading, setUploading] = useState(false);
@@ -66,6 +69,7 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
       original_price: product?.original_price || undefined,
       discount_percentage: product?.discount_percentage || 0,
       category_id: product?.category_id || undefined,
+      brand_id: product?.brand_id || undefined,
       sku: product?.sku || "",
       stock_quantity: product?.stock_quantity || 0,
       is_featured: product?.is_featured || false,
@@ -128,6 +132,7 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
       original_price: values.original_price || null,
       discount_percentage: values.discount_percentage || 0,
       category_id: values.category_id || null,
+      brand_id: values.brand_id || null,
       sku: values.sku || null,
       stock_quantity: values.stock_quantity,
       is_featured: values.is_featured,
@@ -355,7 +360,7 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <FormField
             control={form.control}
             name="category_id"
@@ -372,6 +377,31 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
                     {categories.map((category) => (
                       <SelectItem key={category.id} value={category.id}>
                         {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="brand_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Brand</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value || ""}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select brand" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {brands.map((brand) => (
+                      <SelectItem key={brand.id} value={brand.id}>
+                        {brand.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
