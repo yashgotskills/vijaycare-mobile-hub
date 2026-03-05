@@ -29,7 +29,7 @@ import { useBrands } from "@/hooks/useProducts";
 
 const productSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  slug: z.string().min(1, "Slug is required"),
+  
   description: z.string().optional(),
   short_description: z.string().optional(),
   price: z.number().min(0, "Price must be positive"),
@@ -62,7 +62,7 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
     resolver: zodResolver(productSchema),
     defaultValues: {
       name: product?.name || "",
-      slug: product?.slug || "",
+      
       description: product?.description || "",
       short_description: product?.short_description || "",
       price: product?.price || 0,
@@ -123,9 +123,14 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
   const onSubmit = async (values: ProductFormValues) => {
     setLoading(true);
 
+    const slug = product?.slug || values.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+
     const productData = {
       name: values.name,
-      slug: values.slug,
+      slug,
       description: values.description || null,
       short_description: values.short_description || null,
       price: values.price,
@@ -194,15 +199,6 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
     }
   };
 
-  const generateSlug = () => {
-    const name = form.getValues("name");
-    const slug = name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "");
-    form.setValue("slug", slug);
-  };
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -244,35 +240,19 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Product Name *</FormLabel>
-                <FormControl>
-                  <Input {...field} onBlur={generateSlug} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="slug"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Slug *</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Product Name *</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}
