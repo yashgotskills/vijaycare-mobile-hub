@@ -261,6 +261,20 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
 
         <FormField
           control={form.control}
+          name="slug"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Slug (auto-generated if empty)</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="Leave empty for auto-generate" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+
+          control={form.control}
           name="short_description"
           render={({ field }) => (
             <FormItem>
