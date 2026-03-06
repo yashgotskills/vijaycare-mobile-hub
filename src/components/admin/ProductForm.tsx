@@ -68,7 +68,7 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
     resolver: zodResolver(productSchema),
     defaultValues: {
       name: product?.name || "",
-      
+      slug: product?.slug || "",
       description: product?.description || "",
       short_description: product?.short_description || "",
       price: product?.price || 0,
