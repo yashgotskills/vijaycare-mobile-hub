@@ -273,7 +273,7 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
           )}
         />
 
-
+        <FormField
           control={form.control}
           name="short_description"
           render={({ field }) => (
