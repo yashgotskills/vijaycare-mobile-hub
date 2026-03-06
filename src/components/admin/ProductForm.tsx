@@ -129,10 +129,9 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
   const onSubmit = async (values: ProductFormValues) => {
     setLoading(true);
 
-    const slug = product?.slug || values.name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "");
+    const slug = values.slug?.trim() 
+      ? values.slug.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+      : (product?.slug || generateUniqueSlug(values.name));
 
     const productData = {
       name: values.name,
