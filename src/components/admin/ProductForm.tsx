@@ -29,7 +29,7 @@ import { useBrands } from "@/hooks/useProducts";
 
 const productSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  
+  slug: z.string().optional(),
   description: z.string().optional(),
   short_description: z.string().optional(),
   price: z.number().min(0, "Price must be positive"),
@@ -43,6 +43,12 @@ const productSchema = z.object({
   is_new: z.boolean().default(false),
   is_bestseller: z.boolean().default(false),
 });
+
+const generateUniqueSlug = (name: string) => {
+  const base = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  const suffix = Date.now().toString(36) + Math.random().toString(36).substring(2, 5);
+  return `${base}-${suffix}`;
+};
 
 type ProductFormValues = z.infer<typeof productSchema>;
 
@@ -62,7 +68,7 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
     resolver: zodResolver(productSchema),
     defaultValues: {
       name: product?.name || "",
-      
+      slug: product?.slug || "",
       description: product?.description || "",
       short_description: product?.short_description || "",
       price: product?.price || 0,
@@ -123,10 +129,9 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
   const onSubmit = async (values: ProductFormValues) => {
     setLoading(true);
 
-    const slug = product?.slug || values.name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "");
+    const slug = values.slug?.trim() 
+      ? values.slug.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+      : (product?.slug || generateUniqueSlug(values.name));
 
     const productData = {
       name: values.name,
@@ -248,6 +253,20 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
               <FormLabel>Product Name *</FormLabel>
               <FormControl>
                 <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="slug"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Slug (auto-generated if empty)</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="Leave empty for auto-generate" />
               </FormControl>
               <FormMessage />
             </FormItem>
