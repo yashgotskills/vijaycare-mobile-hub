@@ -29,7 +29,7 @@ import { useBrands } from "@/hooks/useProducts";
 
 const productSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  
+  slug: z.string().optional(),
   description: z.string().optional(),
   short_description: z.string().optional(),
   price: z.number().min(0, "Price must be positive"),
@@ -43,6 +43,12 @@ const productSchema = z.object({
   is_new: z.boolean().default(false),
   is_bestseller: z.boolean().default(false),
 });
+
+const generateUniqueSlug = (name: string) => {
+  const base = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  const suffix = Date.now().toString(36) + Math.random().toString(36).substring(2, 5);
+  return `${base}-${suffix}`;
+};
 
 type ProductFormValues = z.infer<typeof productSchema>;
 
