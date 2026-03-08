@@ -4,6 +4,8 @@ import type { Product, Category, Brand } from "@/types/product";
 
 export const useProducts = (options?: {
   categorySlug?: string;
+  categoryId?: string;
+  brandId?: string;
   brandSlug?: string;
   featured?: boolean;
   bestseller?: boolean;
@@ -22,6 +24,12 @@ export const useProducts = (options?: {
         `)
         .order("created_at", { ascending: false });
 
+      if (options?.categoryId) {
+        query = query.eq("category_id", options.categoryId);
+      }
+      if (options?.brandId) {
+        query = query.eq("brand_id", options.brandId);
+      }
       if (options?.featured) {
         query = query.eq("is_featured", true);
       }

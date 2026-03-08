@@ -28,22 +28,19 @@ const CategoryPage = () => {
   const navigate = useNavigate();
   const { data: categories } = useCategories();
   const { data: brands } = useBrands();
-  const { data: products, isLoading } = useProducts({ limit: 50 });
-
+  
   const [priceRange, setPriceRange] = useState([0, 10000]);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState("newest");
 
   const currentCategory = categories?.find((c) => c.slug === slug);
 
+  const { data: products, isLoading } = useProducts({ 
+    categoryId: currentCategory?.id,
+  });
+
   // Filter products
   let filteredProducts = products || [];
-  
-  if (currentCategory) {
-    filteredProducts = filteredProducts.filter(
-      (p) => p.category_id === currentCategory.id
-    );
-  }
 
   if (selectedBrands.length > 0) {
     filteredProducts = filteredProducts.filter(
