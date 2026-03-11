@@ -265,7 +265,7 @@ const AdminPage = () => {
             setActiveTab(val);
             if (val === "orders") setNewOrdersCount(0);
           }} className="w-full">
-            <TabsList className="grid w-full grid-cols-6 mb-6">
+            <TabsList className="grid w-full grid-cols-7 mb-6">
               <TabsTrigger value="orders" className="gap-2 relative">
                 Orders ({orders.length})
                 {newOrdersCount > 0 && (
