@@ -337,8 +337,15 @@ const AdminPage = () => {
               />
             </TabsContent>
 
+            <TabsContent value="models">
+              <ModelsTab 
+                loading={loading} 
+                onRefresh={fetchAll} 
+              />
+            </TabsContent>
+
             <TabsContent value="users">
-              <UsersTab 
+              <UsersTab
                 loading={loading} 
                 onRefresh={fetchAll} 
               />
