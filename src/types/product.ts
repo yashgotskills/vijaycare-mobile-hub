@@ -50,6 +50,17 @@ export interface Brand {
   description: string | null;
 }
 
+export interface DeviceModel {
+  id: string;
+  name: string;
+  slug: string;
+  brand_id: string | null;
+  image: string | null;
+  created_at: string;
+  updated_at: string;
+  brand?: Brand;
+}
+
 export interface Review {
   id: string;
   product_id: string;
