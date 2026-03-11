@@ -214,6 +214,44 @@ export type Database = {
         }
         Relationships: []
       }
+      device_models: {
+        Row: {
+          brand_id: string | null
+          created_at: string
+          id: string
+          image: string | null
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          brand_id?: string | null
+          created_at?: string
+          id?: string
+          image?: string | null
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          brand_id?: string | null
+          created_at?: string
+          id?: string
+          image?: string | null
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "device_models_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           created_at: string
@@ -252,6 +290,42 @@ export type Database = {
           user_phone?: string
         }
         Relationships: []
+      }
+      product_models: {
+        Row: {
+          created_at: string
+          id: string
+          model_id: string
+          product_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          model_id: string
+          product_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          model_id?: string
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_models_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "device_models"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_models_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       products: {
         Row: {
@@ -562,12 +636,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_assign_product_to_model: {
+        Args: { _admin_phone: string; _model_id: string; _product_id: string }
+        Returns: Json
+      }
       admin_delete_banner: {
         Args: { _admin_phone: string; _banner_id: string }
         Returns: Json
       }
       admin_delete_category: {
         Args: { _admin_phone: string; _category_id: string }
+        Returns: Json
+      }
+      admin_delete_model: {
+        Args: { _admin_phone: string; _model_id: string }
         Returns: Json
       }
       admin_delete_product: {
@@ -580,6 +662,10 @@ export type Database = {
       }
       admin_insert_category: {
         Args: { _admin_phone: string; _category_data: Json }
+        Returns: Json
+      }
+      admin_insert_model: {
+        Args: { _admin_phone: string; _model_data: Json }
         Returns: Json
       }
       admin_insert_product: {
@@ -605,6 +691,10 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      admin_unassign_product_from_model: {
+        Args: { _admin_phone: string; _model_id: string; _product_id: string }
+        Returns: Json
+      }
       admin_update_banner: {
         Args: { _admin_phone: string; _banner_data: Json; _banner_id: string }
         Returns: Json
@@ -615,6 +705,10 @@ export type Database = {
           _category_data: Json
           _category_id: string
         }
+        Returns: Json
+      }
+      admin_update_model: {
+        Args: { _admin_phone: string; _model_data: Json; _model_id: string }
         Returns: Json
       }
       admin_update_order_status: {

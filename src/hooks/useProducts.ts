@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { Product, Category, Brand } from "@/types/product";
+import type { Product, Category, Brand, DeviceModel } from "@/types/product";
 
 export const useProducts = (options?: {
   categorySlug?: string;
@@ -11,10 +11,22 @@ export const useProducts = (options?: {
   bestseller?: boolean;
   isNew?: boolean;
   limit?: number;
+  modelId?: string;
 }) => {
   return useQuery({
     queryKey: ["products", options],
     queryFn: async () => {
+      // If filtering by model, first get product IDs from junction table
+      let modelProductIds: string[] | null = null;
+      if (options?.modelId) {
+        const { data: pm } = await supabase
+          .from("product_models")
+          .select("product_id")
+          .eq("model_id", options.modelId);
+        modelProductIds = (pm || []).map((r: any) => r.product_id);
+        if (modelProductIds.length === 0) return [];
+      }
+
       let query = supabase
         .from("products")
         .select(`
@@ -24,6 +36,9 @@ export const useProducts = (options?: {
         `)
         .order("created_at", { ascending: false });
 
+      if (modelProductIds) {
+        query = query.in("id", modelProductIds);
+      }
       if (options?.categoryId) {
         query = query.eq("category_id", options.categoryId);
       }
@@ -103,6 +118,61 @@ export const useBrands = () => {
       
       return data as Brand[];
     },
+  });
+};
+
+export const useDeviceModels = () => {
+  return useQuery({
+    queryKey: ["device-models"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("device_models")
+        .select("*, brand:brands(*)")
+        .order("name");
+
+      if (error) throw error;
+
+      return data as unknown as DeviceModel[];
+    },
+  });
+};
+
+export const useModelsForCategory = (categoryId: string | undefined) => {
+  return useQuery({
+    queryKey: ["models-for-category", categoryId],
+    queryFn: async () => {
+      // Get all product IDs in this category
+      const { data: categoryProducts } = await supabase
+        .from("products")
+        .select("id")
+        .eq("category_id", categoryId!);
+
+      if (!categoryProducts || categoryProducts.length === 0) return [];
+
+      const productIds = categoryProducts.map((p) => p.id);
+
+      // Get model IDs that have at least one product in this category
+      const { data: productModels } = await supabase
+        .from("product_models")
+        .select("model_id")
+        .in("product_id", productIds);
+
+      if (!productModels || productModels.length === 0) return [];
+
+      const uniqueModelIds = [...new Set(productModels.map((pm: any) => pm.model_id))];
+
+      // Fetch those models
+      const { data: models, error } = await supabase
+        .from("device_models")
+        .select("*, brand:brands(*)")
+        .in("id", uniqueModelIds)
+        .order("name");
+
+      if (error) throw error;
+
+      return models as unknown as DeviceModel[];
+    },
+    enabled: !!categoryId,
   });
 };
 

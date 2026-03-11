@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ChevronRight, SlidersHorizontal, X } from "lucide-react";
+import { ChevronRight, SlidersHorizontal, X, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
@@ -21,7 +21,7 @@ import {
 import ShopHeader from "@/components/shop/ShopHeader";
 import Footer from "@/components/Footer";
 import ProductGrid from "@/components/shop/ProductGrid";
-import { useProducts, useCategories, useBrands } from "@/hooks/useProducts";
+import { useProducts, useCategories, useBrands, useModelsForCategory } from "@/hooks/useProducts";
 
 const CategoryPage = () => {
   const { slug } = useParams();
@@ -32,11 +32,15 @@ const CategoryPage = () => {
   const [priceRange, setPriceRange] = useState([0, 10000]);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState("newest");
+  const [selectedModelId, setSelectedModelId] = useState<string | null>(null);
 
   const currentCategory = categories?.find((c) => c.slug === slug);
 
+  const { data: models } = useModelsForCategory(currentCategory?.id);
+
   const { data: products, isLoading } = useProducts({ 
     categoryId: currentCategory?.id,
+    modelId: selectedModelId || undefined,
   });
 
   // Filter products
@@ -78,6 +82,7 @@ const CategoryPage = () => {
   const clearFilters = () => {
     setPriceRange([0, 10000]);
     setSelectedBrands([]);
+    setSelectedModelId(null);
   };
 
   const FilterContent = () => (
@@ -142,7 +147,7 @@ const CategoryPage = () => {
         </nav>
 
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold font-display text-foreground">
               {currentCategory?.name || "All Products"}
@@ -185,6 +190,37 @@ const CategoryPage = () => {
             </Select>
           </div>
         </div>
+
+        {/* Model Filter Chips */}
+        {models && models.length > 0 && (
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-2">
+              <Smartphone className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-muted-foreground">Filter by Model</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={selectedModelId === null ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedModelId(null)}
+                className="rounded-full"
+              >
+                All
+              </Button>
+              {models.map((model) => (
+                <Button
+                  key={model.id}
+                  variant={selectedModelId === model.id ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedModelId(selectedModelId === model.id ? null : model.id)}
+                  className="rounded-full"
+                >
+                  {model.name}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Active Filters */}
         {(selectedBrands.length > 0 || priceRange[0] > 0 || priceRange[1] < 10000) && (
