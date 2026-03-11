@@ -287,6 +287,10 @@ const AdminPage = () => {
                 <Image className="w-4 h-4" />
                 Banners
               </TabsTrigger>
+              <TabsTrigger value="models" className="gap-2">
+                <Smartphone className="w-4 h-4" />
+                Models
+              </TabsTrigger>
               <TabsTrigger value="users" className="gap-2">
                 <Users className="w-4 h-4" />
                 Users
