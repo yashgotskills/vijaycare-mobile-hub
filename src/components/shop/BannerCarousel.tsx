@@ -26,7 +26,7 @@ const BannerCarousel = () => {
   const [banners, setBanners] = useState<Banner[]>(fallbackBanners);
   const [isPaused, setIsPaused] = useState(false);
   const reduceMotion = useReducedMotion();
-  const pauseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const pauseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     fetchBanners();

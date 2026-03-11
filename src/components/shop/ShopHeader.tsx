@@ -16,8 +16,8 @@ const ShopHeader = () => {
   const [showAdminAccess, setShowAdminAccess] = useState(false);
   const [tapCount, setTapCount] = useState(0);
   const headerRef = useRef<HTMLElement | null>(null);
-  const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const longPressTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const tapTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   const navigate = useNavigate();
   const { totalItems } = useCart();
