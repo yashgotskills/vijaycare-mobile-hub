@@ -15,6 +15,7 @@ import ProductsTab from "@/components/admin/ProductsTab";
 import CategoriesTab from "@/components/admin/CategoriesTab";
 import UsersTab from "@/components/admin/UsersTab";
 import BannersTab from "@/components/admin/BannersTab";
+import ModelsTab from "@/components/admin/ModelsTab";
 import type { Product, Category } from "@/types/product";
 
 interface Order {
