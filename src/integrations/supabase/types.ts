@@ -335,6 +335,7 @@ export type Database = {
           created_at: string
           description: string | null
           discount_percentage: number | null
+          family_tag: string | null
           id: string
           images: Json | null
           is_bestseller: boolean | null
@@ -360,6 +361,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           discount_percentage?: number | null
+          family_tag?: string | null
           id?: string
           images?: Json | null
           is_bestseller?: boolean | null
@@ -385,6 +387,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           discount_percentage?: number | null
+          family_tag?: string | null
           id?: string
           images?: Json | null
           is_bestseller?: boolean | null
