@@ -10,6 +10,7 @@ export interface Product {
   category_id: string | null;
   brand_id: string | null;
   sku: string | null;
+  family_tag: string | null;
   stock_quantity: number;
   is_featured: boolean;
   is_new: boolean;

@@ -38,6 +38,7 @@ const productSchema = z.object({
   category_id: z.string().optional(),
   brand_id: z.string().optional(),
   sku: z.string().optional(),
+  family_tag: z.string().optional(),
   stock_quantity: z.number().min(0).default(0),
   is_featured: z.boolean().default(false),
   is_new: z.boolean().default(false),
@@ -77,6 +78,7 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
       category_id: product?.category_id || undefined,
       brand_id: product?.brand_id || undefined,
       sku: product?.sku || "",
+      family_tag: product?.family_tag || "",
       stock_quantity: product?.stock_quantity || 0,
       is_featured: product?.is_featured || false,
       is_new: product?.is_new || false,
@@ -144,6 +146,7 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
       category_id: values.category_id || null,
       brand_id: values.brand_id || null,
       sku: values.sku || null,
+      family_tag: values.family_tag?.trim() || null,
       stock_quantity: values.stock_quantity,
       is_featured: values.is_featured,
       is_new: values.is_new,
@@ -405,6 +408,23 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
                     ))}
                   </SelectContent>
                 </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="family_tag"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Model Family Tag</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    placeholder="e.g. iphone-12-silicone-cover"
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

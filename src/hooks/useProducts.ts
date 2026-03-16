@@ -16,7 +16,6 @@ export const useProducts = (options?: {
   return useQuery({
     queryKey: ["products", options],
     queryFn: async () => {
-      // If filtering by model, first get product IDs from junction table
       let modelProductIds: string[] | null = null;
       if (options?.modelId) {
         const { data: pm } = await supabase
@@ -36,32 +35,16 @@ export const useProducts = (options?: {
         `)
         .order("created_at", { ascending: false });
 
-      if (modelProductIds) {
-        query = query.in("id", modelProductIds);
-      }
-      if (options?.categoryId) {
-        query = query.eq("category_id", options.categoryId);
-      }
-      if (options?.brandId) {
-        query = query.eq("brand_id", options.brandId);
-      }
-      if (options?.featured) {
-        query = query.eq("is_featured", true);
-      }
-      if (options?.bestseller) {
-        query = query.eq("is_bestseller", true);
-      }
-      if (options?.isNew) {
-        query = query.eq("is_new", true);
-      }
-      if (options?.limit) {
-        query = query.limit(options.limit);
-      }
+      if (modelProductIds) query = query.in("id", modelProductIds);
+      if (options?.categoryId) query = query.eq("category_id", options.categoryId);
+      if (options?.brandId) query = query.eq("brand_id", options.brandId);
+      if (options?.featured) query = query.eq("is_featured", true);
+      if (options?.bestseller) query = query.eq("is_bestseller", true);
+      if (options?.isNew) query = query.eq("is_new", true);
+      if (options?.limit) query = query.limit(options.limit);
 
       const { data, error } = await query;
-      
       if (error) throw error;
-      
       return data as unknown as Product[];
     },
   });
@@ -82,10 +65,38 @@ export const useProduct = (slug: string) => {
         .maybeSingle();
 
       if (error) throw error;
-      
       return data as unknown as Product | null;
     },
     enabled: !!slug,
+  });
+};
+
+export const useProductFamilyVariants = (
+  productId: string | undefined,
+  familyTag: string | null | undefined,
+  categoryId: string | null | undefined,
+) => {
+  return useQuery({
+    queryKey: ["product-family-variants", productId, familyTag, categoryId],
+    queryFn: async () => {
+      if (!familyTag || !categoryId) return [];
+
+      const { data, error } = await supabase
+        .from("products")
+        .select(`
+          *,
+          category:categories(*),
+          brand:brands(*)
+        `)
+        .eq("family_tag", familyTag)
+        .eq("category_id", categoryId)
+        .neq("id", productId!)
+        .order("name");
+
+      if (error) throw error;
+      return data as unknown as Product[];
+    },
+    enabled: !!productId && !!familyTag && !!categoryId,
   });
 };
 
@@ -99,7 +110,6 @@ export const useCategories = () => {
         .order("name");
 
       if (error) throw error;
-      
       return data as Category[];
     },
   });
@@ -115,7 +125,6 @@ export const useBrands = () => {
         .order("name");
 
       if (error) throw error;
-      
       return data as Brand[];
     },
   });
@@ -131,7 +140,6 @@ export const useDeviceModels = () => {
         .order("name");
 
       if (error) throw error;
-
       return data as unknown as DeviceModel[];
     },
   });
@@ -141,7 +149,6 @@ export const useModelsForCategory = (categoryId: string | undefined) => {
   return useQuery({
     queryKey: ["models-for-category", categoryId],
     queryFn: async () => {
-      // Get all product IDs in this category
       const { data: categoryProducts } = await supabase
         .from("products")
         .select("id")
@@ -150,8 +157,6 @@ export const useModelsForCategory = (categoryId: string | undefined) => {
       if (!categoryProducts || categoryProducts.length === 0) return [];
 
       const productIds = categoryProducts.map((p) => p.id);
-
-      // Get model IDs that have at least one product in this category
       const { data: productModels } = await supabase
         .from("product_models")
         .select("model_id")
@@ -160,8 +165,6 @@ export const useModelsForCategory = (categoryId: string | undefined) => {
       if (!productModels || productModels.length === 0) return [];
 
       const uniqueModelIds = [...new Set(productModels.map((pm: any) => pm.model_id))];
-
-      // Fetch those models
       const { data: models, error } = await supabase
         .from("device_models")
         .select("*, brand:brands(*)")
@@ -169,7 +172,6 @@ export const useModelsForCategory = (categoryId: string | undefined) => {
         .order("name");
 
       if (error) throw error;
-
       return models as unknown as DeviceModel[];
     },
     enabled: !!categoryId,
@@ -187,7 +189,6 @@ export const useProductReviews = (productId: string) => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      
       return data;
     },
     enabled: !!productId,
@@ -209,7 +210,6 @@ export const useRecentlyViewed = (userPhone: string) => {
         .limit(10);
 
       if (error) throw error;
-      
       return data;
     },
     enabled: !!userPhone,
