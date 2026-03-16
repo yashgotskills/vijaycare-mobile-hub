@@ -78,6 +78,7 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
       category_id: product?.category_id || undefined,
       brand_id: product?.brand_id || undefined,
       sku: product?.sku || "",
+      family_tag: product?.family_tag || "",
       stock_quantity: product?.stock_quantity || 0,
       is_featured: product?.is_featured || false,
       is_new: product?.is_new || false,
