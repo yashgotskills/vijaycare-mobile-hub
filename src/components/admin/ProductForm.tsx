@@ -38,6 +38,7 @@ const productSchema = z.object({
   category_id: z.string().optional(),
   brand_id: z.string().optional(),
   sku: z.string().optional(),
+  family_tag: z.string().optional(),
   stock_quantity: z.number().min(0).default(0),
   is_featured: z.boolean().default(false),
   is_new: z.boolean().default(false),
