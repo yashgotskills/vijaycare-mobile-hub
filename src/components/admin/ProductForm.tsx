@@ -415,6 +415,23 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
 
           <FormField
             control={form.control}
+            name="family_tag"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Model Family Tag</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    placeholder="e.g. iphone-12-silicone-cover"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
             name="sku"
             render={({ field }) => (
               <FormItem>
