@@ -146,6 +146,7 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
       category_id: values.category_id || null,
       brand_id: values.brand_id || null,
       sku: values.sku || null,
+      family_tag: values.family_tag?.trim() || null,
       stock_quantity: values.stock_quantity,
       is_featured: values.is_featured,
       is_new: values.is_new,
