@@ -25,7 +25,7 @@ import ShopHeader from "@/components/shop/ShopHeader";
 import Footer from "@/components/Footer";
 import ProductGrid from "@/components/shop/ProductGrid";
 import ReviewForm from "@/components/shop/ReviewForm";
-import { useProduct, useProductFamilyVariants, useProducts, useProductReviews } from "@/hooks/useProducts";
+import { useProduct, useProductFamilyVariants, useProducts, useProductReviews, type ProductModelVariant } from "@/hooks/useProducts";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { toast } from "sonner";
