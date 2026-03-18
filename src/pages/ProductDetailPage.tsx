@@ -25,7 +25,7 @@ import ShopHeader from "@/components/shop/ShopHeader";
 import Footer from "@/components/Footer";
 import ProductGrid from "@/components/shop/ProductGrid";
 import ReviewForm from "@/components/shop/ReviewForm";
-import { useProduct, useProductFamilyVariants, useProducts, useProductReviews } from "@/hooks/useProducts";
+import { useProduct, useProductFamilyVariants, useProducts, useProductReviews, type ProductModelVariant } from "@/hooks/useProducts";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { toast } from "sonner";
@@ -132,7 +132,7 @@ const ProductDetailPage = () => {
   };
 
   const images = product.images.length > 0 ? product.images : ["https://placehold.co/800x800?text=No+Image"];
-  const variantChoices = [product, ...familyVariants];
+  const modelVariants = familyVariants || [];
 
   return (
     <div className="min-h-screen bg-background">
@@ -226,25 +226,25 @@ const ProductDetailPage = () => {
               {product.name}
             </h1>
 
-            {variantChoices.length > 1 && (
+            {modelVariants.length > 0 && (
               <div className="rounded-xl border border-border bg-card/60 p-4 space-y-3">
                 <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                   <Tags className="h-4 w-4 text-primary" />
-                  Select Model
+                  Available for Models
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {variantChoices.map((variant) => {
-                    const isActive = variant.id === product.id;
+                  {modelVariants.map((variant) => {
+                    const isActive = variant.product.id === product.id;
                     return (
                       <Button
-                        key={variant.id}
+                        key={variant.modelId}
                         type="button"
                         variant={isActive ? "default" : "outline"}
                         size="sm"
                         className="justify-start max-w-full"
-                        onClick={() => navigate(`/product/${variant.slug}`)}
+                        onClick={() => navigate(`/product/${variant.product.slug}`)}
                       >
-                        <span className="truncate">{variant.name}</span>
+                        <span className="truncate">{variant.modelName}</span>
                       </Button>
                     );
                   })}

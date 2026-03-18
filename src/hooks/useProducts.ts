@@ -71,6 +71,12 @@ export const useProduct = (slug: string) => {
   });
 };
 
+export interface ProductModelVariant {
+  modelName: string;
+  modelId: string;
+  product: Product;
+}
+
 export const useProductFamilyVariants = (
   productId: string | undefined,
   familyTag: string | null | undefined,
@@ -79,22 +85,65 @@ export const useProductFamilyVariants = (
   return useQuery({
     queryKey: ["product-family-variants", productId, familyTag, categoryId],
     queryFn: async () => {
-      if (!familyTag || !categoryId) return [];
+      if (!familyTag || !categoryId || !productId) return [];
 
-      const { data, error } = await supabase
+      // Get all products in the same family
+      const { data: familyProducts, error: fpError } = await supabase
         .from("products")
-        .select(`
-          *,
-          category:categories(*),
-          brand:brands(*)
-        `)
+        .select(`*, category:categories(*), brand:brands(*)`)
         .eq("family_tag", familyTag)
         .eq("category_id", categoryId)
-        .neq("id", productId!)
         .order("name");
 
-      if (error) throw error;
-      return data as unknown as Product[];
+      if (fpError) throw fpError;
+      if (!familyProducts || familyProducts.length <= 1) return [];
+
+      const familyProductIds = familyProducts.map((p: any) => p.id);
+
+      // Get device model assignments for all family products
+      const { data: pmData } = await supabase
+        .from("product_models")
+        .select("product_id, model_id")
+        .in("product_id", familyProductIds);
+
+      if (!pmData || pmData.length === 0) return [];
+
+      const modelIds = [...new Set(pmData.map((r: any) => r.model_id))];
+
+      // Fetch device model names
+      const { data: models } = await supabase
+        .from("device_models")
+        .select("id, name")
+        .in("id", modelIds)
+        .order("name");
+
+      if (!models) return [];
+
+      // Build a map: modelId -> product
+      const productModelMap = new Map<string, string>();
+      for (const pm of pmData) {
+        productModelMap.set(`${pm.model_id}`, pm.product_id);
+      }
+
+      const productMap = new Map<string, Product>();
+      for (const p of familyProducts) {
+        productMap.set(p.id, p as unknown as Product);
+      }
+
+      const variants: ProductModelVariant[] = [];
+      for (const model of models) {
+        const pid = productModelMap.get(model.id);
+        const prod = pid ? productMap.get(pid) : undefined;
+        if (prod) {
+          variants.push({
+            modelName: model.name,
+            modelId: model.id,
+            product: prod,
+          });
+        }
+      }
+
+      return variants;
     },
     enabled: !!productId && !!familyTag && !!categoryId,
   });
