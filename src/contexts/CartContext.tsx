@@ -36,11 +36,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const addToCart = (item: Omit<CartItem, "quantity">) => {
     setItems((prev) => {
-      const existing = prev.find((i) => i.id === item.id);
+      const existing = prev.find((i) => i.id === item.id && i.selectedModel === item.selectedModel);
       if (existing) {
         toast.success(`${item.name} quantity updated`);
         return prev.map((i) =>
-          i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+          i.id === item.id && i.selectedModel === item.selectedModel ? { ...i, quantity: i.quantity + 1 } : i
         );
       }
       toast.success(`${item.name} added to cart`);
