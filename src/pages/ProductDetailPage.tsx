@@ -142,7 +142,6 @@ const ProductDetailPage = () => {
   };
 
   const images = product.images.length > 0 ? product.images : ["https://placehold.co/800x800?text=No+Image"];
-  const modelVariants = familyVariants || [];
 
   return (
     <div className="min-h-screen bg-background">
