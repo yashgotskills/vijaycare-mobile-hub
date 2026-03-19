@@ -519,7 +519,6 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
                   >
                     {isSelected && <Check className="h-3 w-3" />}
                     {model.name}
-                    {model.brand && <span className="opacity-60">({model.brand.name})</span>}
                   </button>
                 );
               })
