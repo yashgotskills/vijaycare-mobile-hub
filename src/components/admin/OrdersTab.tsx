@@ -156,10 +156,10 @@ const normalizeOrderItems = (value: unknown): OrderItem[] => {
         price,
         quantity,
         image: image || undefined,
-        selectedModel: selectedModel || null,
+        selectedModel: selectedModel || undefined,
       };
     })
-    .filter((item): item is OrderItem => Boolean(item));
+    .filter(Boolean) as OrderItem[];
 };
 
 const formatCurrency = (amount: number | null | undefined) => `₹${Number(amount || 0).toLocaleString()}`;
