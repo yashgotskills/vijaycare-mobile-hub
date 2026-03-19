@@ -184,6 +184,8 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
         return;
       }
 
+      let productId = product?.id;
+
       if (product) {
         const { data, error } = await supabase.rpc("admin_update_product" as any, {
           _admin_phone: userPhone,
@@ -193,7 +195,6 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
 
         if (error) throw error;
         if (data && !(data as any).success) throw new Error((data as any).error);
-        toast.success("Product updated successfully");
       } else {
         const { data, error } = await supabase.rpc("admin_insert_product" as any, {
           _admin_phone: userPhone,
@@ -202,9 +203,46 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
 
         if (error) throw error;
         if (data && !(data as any).success) throw new Error((data as any).error);
-        toast.success("Product added successfully");
+        productId = (data as any).id;
       }
 
+      // Save device model assignments
+      if (productId && selectedModelIds.length > 0) {
+        // Remove old assignments
+        await supabase.rpc("admin_unassign_product_from_model" as any, {
+          _admin_phone: userPhone,
+          _product_id: productId,
+          _model_id: selectedModelIds[0], // dummy, we'll bulk handle below
+        });
+
+        // Clear all existing and re-assign
+        for (const existingId of (await supabase.from("product_models").select("model_id").eq("product_id", productId)).data?.map((r: any) => r.model_id) || []) {
+          await supabase.rpc("admin_unassign_product_from_model" as any, {
+            _admin_phone: userPhone,
+            _product_id: productId,
+            _model_id: existingId,
+          });
+        }
+
+        for (const modelId of selectedModelIds) {
+          await supabase.rpc("admin_assign_product_to_model" as any, {
+            _admin_phone: userPhone,
+            _product_id: productId,
+            _model_id: modelId,
+          });
+        }
+      } else if (productId && selectedModelIds.length === 0) {
+        // Clear all assignments
+        for (const existingId of (await supabase.from("product_models").select("model_id").eq("product_id", productId)).data?.map((r: any) => r.model_id) || []) {
+          await supabase.rpc("admin_unassign_product_from_model" as any, {
+            _admin_phone: userPhone,
+            _product_id: productId,
+            _model_id: existingId,
+          });
+        }
+      }
+
+      toast.success(product ? "Product updated successfully" : "Product added successfully");
       onSuccess();
     } catch (error: any) {
       console.error("Product save error:", error);
