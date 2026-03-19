@@ -16,12 +16,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface OrderItem {
-  id?: string | number;
+  id: string | number;
   name: string;
   price: number;
   quantity: number;
   image?: string;
-  selectedModel?: string | null;
+  selectedModel?: string;
 }
 
 interface DeliveryAddress {
