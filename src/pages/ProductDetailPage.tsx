@@ -248,13 +248,13 @@ const ProductDetailPage = () => {
                   Select Your Model {!selectedModelName && <span className="text-xs text-destructive">(required)</span>}
                 </label>
                 <Select
-                  value={selectedModelName || ""}
-                  onValueChange={(val) => setSelectedModelName(val || null)}
+                  value={selectedModelName || undefined}
+                  onValueChange={(val) => setSelectedModelName(val)}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Choose a model..." />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent position="popper" className="max-h-60 overflow-y-auto">
                     {assignedModels.map((model: any) => (
                       <SelectItem key={model.id} value={model.name}>
                         {model.name}
