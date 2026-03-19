@@ -110,6 +110,10 @@ const ProductDetailPage = () => {
   };
 
   const handleBuyNow = () => {
+    if (hasModels && !selectedModelName) {
+      toast.error("Please select a model first");
+      return;
+    }
     handleAddToCart();
     navigate("/checkout");
   };
