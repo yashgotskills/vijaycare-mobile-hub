@@ -227,12 +227,13 @@ const ProductDetailPage = () => {
               {product.name}
             </h1>
 
-            {modelVariants.length > 0 && (
-              <div className="rounded-xl border border-border bg-card/60 p-4 space-y-3">
-                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                  <Tags className="h-4 w-4 text-primary" />
-                  Available for Models
-                </div>
+            {/* Model Selector - Always visible */}
+            <div className="rounded-xl border border-border bg-card/60 p-4 space-y-3">
+              <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <Tags className="h-4 w-4 text-primary" />
+                Available for Models
+              </div>
+              {modelVariants.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
                   {modelVariants.map((variant) => {
                     const isActive = variant.product.id === product.id;
@@ -250,8 +251,18 @@ const ProductDetailPage = () => {
                     );
                   })}
                 </div>
-              </div>
-            )}
+              ) : assignedModels.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {assignedModels.map((model: any) => (
+                    <Badge key={model.id} variant="secondary" className="text-xs">
+                      {model.name}
+                    </Badge>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">No models assigned yet.</p>
+              )}
+            </div>
 
             {product.review_count > 0 && (
               <div className="flex items-center gap-3">
