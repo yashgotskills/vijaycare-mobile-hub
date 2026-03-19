@@ -236,41 +236,34 @@ const ProductDetailPage = () => {
             </h1>
 
             {/* Model Selector - Always visible */}
-            <div className="rounded-xl border border-border bg-card/60 p-4 space-y-3">
-              <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                <Tags className="h-4 w-4 text-primary" />
-                Available for Models
-              </div>
-              {modelVariants.length > 0 ? (
+            {hasModels && (
+              <div className="rounded-xl border border-border bg-card/60 p-4 space-y-3">
+                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                  <Tags className="h-4 w-4 text-primary" />
+                  Select Your Model {!selectedModelName && <span className="text-xs text-destructive">(required)</span>}
+                </div>
                 <div className="flex flex-wrap gap-2">
-                  {modelVariants.map((variant) => {
-                    const isActive = variant.product.id === product.id;
+                  {assignedModels.map((model: any) => {
+                    const isActive = selectedModelName === model.name;
                     return (
                       <Button
-                        key={variant.modelId}
+                        key={model.id}
                         type="button"
                         variant={isActive ? "default" : "outline"}
                         size="sm"
                         className="justify-start max-w-full"
-                        onClick={() => navigate(`/product/${variant.product.slug}`)}
+                        onClick={() => setSelectedModelName(isActive ? null : model.name)}
                       >
-                        <span className="truncate">{variant.modelName}</span>
+                        <span className="truncate">{model.name}</span>
                       </Button>
                     );
                   })}
                 </div>
-              ) : assignedModels.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {assignedModels.map((model: any) => (
-                    <Badge key={model.id} variant="secondary" className="text-xs">
-                      {model.name}
-                    </Badge>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-xs text-muted-foreground">No models assigned yet.</p>
-              )}
-            </div>
+                {selectedModelName && (
+                  <p className="text-xs text-primary font-medium">Selected: {selectedModelName}</p>
+                )}
+              </div>
+            )}
 
             {product.review_count > 0 && (
               <div className="flex items-center gap-3">
