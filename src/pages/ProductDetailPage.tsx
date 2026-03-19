@@ -242,31 +242,26 @@ const ProductDetailPage = () => {
 
             {/* Model Selector - Always visible */}
             {hasModels && (
-              <div className="rounded-xl border border-border bg-card/60 p-4 space-y-3">
-                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-foreground">
                   <Tags className="h-4 w-4 text-primary" />
                   Select Your Model {!selectedModelName && <span className="text-xs text-destructive">(required)</span>}
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {assignedModels.map((model: any) => {
-                    const isActive = selectedModelName === model.name;
-                    return (
-                      <Button
-                        key={model.id}
-                        type="button"
-                        variant={isActive ? "default" : "outline"}
-                        size="sm"
-                        className="justify-start max-w-full"
-                        onClick={() => setSelectedModelName(isActive ? null : model.name)}
-                      >
-                        <span className="truncate">{model.name}</span>
-                      </Button>
-                    );
-                  })}
-                </div>
-                {selectedModelName && (
-                  <p className="text-xs text-primary font-medium">Selected: {selectedModelName}</p>
-                )}
+                </label>
+                <Select
+                  value={selectedModelName || ""}
+                  onValueChange={(val) => setSelectedModelName(val || null)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Choose a model..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {assignedModels.map((model: any) => (
+                      <SelectItem key={model.id} value={model.name}>
+                        {model.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             )}
 
