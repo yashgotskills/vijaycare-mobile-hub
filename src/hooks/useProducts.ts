@@ -149,6 +149,34 @@ export const useProductFamilyVariants = (
   });
 };
 
+// Fetch device models assigned to a single product
+export const useProductAssignedModels = (productId: string | undefined) => {
+  return useQuery({
+    queryKey: ["product-assigned-models", productId],
+    queryFn: async () => {
+      if (!productId) return [];
+
+      const { data: pmData } = await supabase
+        .from("product_models")
+        .select("model_id")
+        .eq("product_id", productId);
+
+      if (!pmData || pmData.length === 0) return [];
+
+      const modelIds = pmData.map((r: any) => r.model_id);
+
+      const { data: models } = await supabase
+        .from("device_models")
+        .select("id, name, slug")
+        .in("id", modelIds)
+        .order("name");
+
+      return models || [];
+    },
+    enabled: !!productId,
+  });
+};
+
 export const useCategories = () => {
   return useQuery({
     queryKey: ["categories"],
