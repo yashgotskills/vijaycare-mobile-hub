@@ -63,34 +63,10 @@ interface ProductFormProps {
 const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
   const { data: brands = [] } = useBrands();
   const { data: deviceModels = [] } = useDeviceModels();
-
-  const selectedBrandId = form.watch("brand_id");
-  const filteredModels = selectedBrandId
-    ? deviceModels.filter((m) => m.brand_id === selectedBrandId)
-    : deviceModels;
   const [loading, setLoading] = useState(false);
   const [images, setImages] = useState<string[]>(product?.images || []);
   const [uploading, setUploading] = useState(false);
   const [selectedModelIds, setSelectedModelIds] = useState<string[]>([]);
-
-  // Load existing device model assignments for this product
-  useEffect(() => {
-    if (!product?.id) return;
-    const fetchAssignedModels = async () => {
-      const { data } = await supabase
-        .from("product_models")
-        .select("model_id")
-        .eq("product_id", product.id);
-      if (data) setSelectedModelIds(data.map((r: any) => r.model_id));
-    };
-    fetchAssignedModels();
-  }, [product?.id]);
-
-  const toggleModel = (modelId: string) => {
-    setSelectedModelIds((prev) =>
-      prev.includes(modelId) ? prev.filter((id) => id !== modelId) : [...prev, modelId]
-    );
-  };
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -112,6 +88,30 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
       is_bestseller: product?.is_bestseller || false,
     },
   });
+
+  const selectedBrandId = form.watch("brand_id");
+  const filteredModels = selectedBrandId
+    ? deviceModels.filter((m) => m.brand_id === selectedBrandId)
+    : [];
+
+  // Load existing device model assignments for this product
+  useEffect(() => {
+    if (!product?.id) return;
+    const fetchAssignedModels = async () => {
+      const { data } = await supabase
+        .from("product_models")
+        .select("model_id")
+        .eq("product_id", product.id);
+      if (data) setSelectedModelIds(data.map((r: any) => r.model_id));
+    };
+    fetchAssignedModels();
+  }, [product?.id]);
+
+  const toggleModel = (modelId: string) => {
+    setSelectedModelIds((prev) =>
+      prev.includes(modelId) ? prev.filter((id) => id !== modelId) : [...prev, modelId]
+    );
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
