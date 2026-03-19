@@ -88,7 +88,13 @@ const ProductDetailPage = () => {
     ? Math.round((1 - product.price / product.original_price) * 100)
     : 0;
 
+  const hasModels = assignedModels.length > 0 || modelVariants.length > 0;
+
   const handleAddToCart = () => {
+    if (hasModels && !selectedModelName) {
+      toast.error("Please select a model first");
+      return;
+    }
     for (let i = 0; i < quantity; i++) {
       addToCart({
         id: numericId,
@@ -97,6 +103,7 @@ const ProductDetailPage = () => {
         originalPrice: product.original_price || product.price,
         image: product.images[0] || "",
         category: product.category?.name,
+        selectedModel: selectedModelName || undefined,
       });
     }
   };
