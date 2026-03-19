@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Upload, X } from "lucide-react";
+import { Loader2, Upload, X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import {
   Form,
   FormControl,
@@ -24,8 +25,8 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import type { Product, Category, Brand } from "@/types/product";
-import { useBrands } from "@/hooks/useProducts";
+import type { Product, Category, Brand, DeviceModel } from "@/types/product";
+import { useBrands, useDeviceModels } from "@/hooks/useProducts";
 
 const productSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -61,9 +62,30 @@ interface ProductFormProps {
 
 const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
   const { data: brands = [] } = useBrands();
+  const { data: deviceModels = [] } = useDeviceModels();
   const [loading, setLoading] = useState(false);
   const [images, setImages] = useState<string[]>(product?.images || []);
   const [uploading, setUploading] = useState(false);
+  const [selectedModelIds, setSelectedModelIds] = useState<string[]>([]);
+
+  // Load existing device model assignments for this product
+  useEffect(() => {
+    if (!product?.id) return;
+    const fetchAssignedModels = async () => {
+      const { data } = await supabase
+        .from("product_models")
+        .select("model_id")
+        .eq("product_id", product.id);
+      if (data) setSelectedModelIds(data.map((r: any) => r.model_id));
+    };
+    fetchAssignedModels();
+  }, [product?.id]);
+
+  const toggleModel = (modelId: string) => {
+    setSelectedModelIds((prev) =>
+      prev.includes(modelId) ? prev.filter((id) => id !== modelId) : [...prev, modelId]
+    );
+  };
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -162,6 +184,8 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
         return;
       }
 
+      let productId = product?.id;
+
       if (product) {
         const { data, error } = await supabase.rpc("admin_update_product" as any, {
           _admin_phone: userPhone,
@@ -171,7 +195,6 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
 
         if (error) throw error;
         if (data && !(data as any).success) throw new Error((data as any).error);
-        toast.success("Product updated successfully");
       } else {
         const { data, error } = await supabase.rpc("admin_insert_product" as any, {
           _admin_phone: userPhone,
@@ -180,9 +203,36 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
 
         if (error) throw error;
         if (data && !(data as any).success) throw new Error((data as any).error);
-        toast.success("Product added successfully");
+        productId = (data as any).id;
       }
 
+      // Save device model assignments
+      if (productId) {
+        // Clear all existing assignments first
+        const { data: existing } = await supabase
+          .from("product_models")
+          .select("model_id")
+          .eq("product_id", productId);
+
+        for (const row of existing || []) {
+          await supabase.rpc("admin_unassign_product_from_model" as any, {
+            _admin_phone: userPhone,
+            _product_id: productId,
+            _model_id: (row as any).model_id,
+          });
+        }
+
+        // Assign selected models
+        for (const modelId of selectedModelIds) {
+          await supabase.rpc("admin_assign_product_to_model" as any, {
+            _admin_phone: userPhone,
+            _product_id: productId,
+            _model_id: modelId,
+          });
+        }
+      }
+
+      toast.success(product ? "Product updated successfully" : "Product added successfully");
       onSuccess();
     } catch (error: any) {
       console.error("Product save error:", error);
@@ -422,13 +472,55 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
                 <FormControl>
                   <Input
                     {...field}
-                    placeholder="e.g. iphone-12-silicone-cover"
+                    placeholder="e.g. silicone-case"
                   />
                 </FormControl>
+                <p className="text-xs text-muted-foreground">
+                  Same tag = grouped together. Users can switch between models.
+                </p>
                 <FormMessage />
               </FormItem>
             )}
           />
+        </div>
+
+        {/* Device Model Assignment */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Compatible Device Models</label>
+          <p className="text-xs text-muted-foreground">
+            Select which phone models this product fits. Products with same Family Tag + different models will show a model switcher.
+          </p>
+          <div className="flex flex-wrap gap-2 p-3 border border-border rounded-lg bg-card/50 max-h-48 overflow-y-auto">
+            {deviceModels.length === 0 ? (
+              <p className="text-xs text-muted-foreground">No device models created yet. Add them in the Models tab first.</p>
+            ) : (
+              deviceModels.map((model) => {
+                const isSelected = selectedModelIds.includes(model.id);
+                return (
+                  <button
+                    key={model.id}
+                    type="button"
+                    onClick={() => toggleModel(model.id)}
+                    className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                      isSelected
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background text-foreground border-border hover:border-primary/50"
+                    }`}
+                  >
+                    {isSelected && <Check className="h-3 w-3" />}
+                    {model.name}
+                    {model.brand && <span className="opacity-60">({model.brand.name})</span>}
+                  </button>
+                );
+              })
+            )}
+          </div>
+          {selectedModelIds.length > 0 && (
+            <p className="text-xs text-muted-foreground">{selectedModelIds.length} model(s) selected</p>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
 
           <FormField
             control={form.control}
