@@ -48,6 +48,7 @@ const ProductDetailPage = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [selectedModelName, setSelectedModelName] = useState<string | null>(null);
 
   if (isLoading) {
     return (
