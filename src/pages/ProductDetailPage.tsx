@@ -41,6 +41,7 @@ const ProductDetailPage = () => {
     product?.family_tag,
     product?.category_id,
   );
+  const { data: assignedModels = [] } = useProductAssignedModels(product?.id);
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
 
