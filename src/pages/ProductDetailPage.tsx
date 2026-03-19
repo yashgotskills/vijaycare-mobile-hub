@@ -88,6 +88,7 @@ const ProductDetailPage = () => {
     ? Math.round((1 - product.price / product.original_price) * 100)
     : 0;
 
+  const modelVariants = familyVariants || [];
   const hasModels = assignedModels.length > 0 || modelVariants.length > 0;
 
   const handleAddToCart = () => {
