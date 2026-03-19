@@ -25,7 +25,7 @@ import ShopHeader from "@/components/shop/ShopHeader";
 import Footer from "@/components/Footer";
 import ProductGrid from "@/components/shop/ProductGrid";
 import ReviewForm from "@/components/shop/ReviewForm";
-import { useProduct, useProductFamilyVariants, useProducts, useProductReviews, type ProductModelVariant } from "@/hooks/useProducts";
+import { useProduct, useProductFamilyVariants, useProductAssignedModels, useProducts, useProductReviews, type ProductModelVariant } from "@/hooks/useProducts";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { toast } from "sonner";
@@ -41,6 +41,7 @@ const ProductDetailPage = () => {
     product?.family_tag,
     product?.category_id,
   );
+  const { data: assignedModels = [] } = useProductAssignedModels(product?.id);
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
 
@@ -226,12 +227,13 @@ const ProductDetailPage = () => {
               {product.name}
             </h1>
 
-            {modelVariants.length > 0 && (
-              <div className="rounded-xl border border-border bg-card/60 p-4 space-y-3">
-                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                  <Tags className="h-4 w-4 text-primary" />
-                  Available for Models
-                </div>
+            {/* Model Selector - Always visible */}
+            <div className="rounded-xl border border-border bg-card/60 p-4 space-y-3">
+              <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <Tags className="h-4 w-4 text-primary" />
+                Available for Models
+              </div>
+              {modelVariants.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
                   {modelVariants.map((variant) => {
                     const isActive = variant.product.id === product.id;
@@ -249,8 +251,18 @@ const ProductDetailPage = () => {
                     );
                   })}
                 </div>
-              </div>
-            )}
+              ) : assignedModels.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {assignedModels.map((model: any) => (
+                    <Badge key={model.id} variant="secondary" className="text-xs">
+                      {model.name}
+                    </Badge>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">No models assigned yet.</p>
+              )}
+            </div>
 
             {product.review_count > 0 && (
               <div className="flex items-center gap-3">
