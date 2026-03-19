@@ -495,11 +495,16 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
           <p className="text-xs text-muted-foreground">
             Select which phone models this product fits. Products with same Family Tag + different models will show a model switcher.
           </p>
+          {!selectedBrandId && (
+            <p className="text-xs text-amber-600">Select a brand above to see compatible device models.</p>
+          )}
           <div className="flex flex-wrap gap-2 p-3 border border-border rounded-lg bg-card/50 max-h-48 overflow-y-auto">
-            {deviceModels.length === 0 ? (
-              <p className="text-xs text-muted-foreground">No device models created yet. Add them in the Models tab first.</p>
+            {selectedBrandId && filteredModels.length === 0 ? (
+              <p className="text-xs text-muted-foreground">No device models found for this brand. Add them in the Models tab first.</p>
+            ) : !selectedBrandId ? (
+              <p className="text-xs text-muted-foreground">Please select a brand first.</p>
             ) : (
-              deviceModels.map((model) => {
+              filteredModels.map((model) => {
                 const isSelected = selectedModelIds.includes(model.id);
                 return (
                   <button
