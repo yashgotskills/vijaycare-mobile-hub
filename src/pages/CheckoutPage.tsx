@@ -187,7 +187,8 @@ const CheckoutPage = () => {
         name: item.name,
         price: item.price,
         quantity: item.quantity,
-        image: item.image
+        image: item.image,
+        selectedModel: item.selectedModel || null,
       }));
 
       const { data: orderData, error: orderError } = await supabase.from("orders").insert({
@@ -529,6 +530,9 @@ const CheckoutPage = () => {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-foreground line-clamp-1">{item.name}</p>
+                          {item.selectedModel && (
+                            <p className="text-xs text-primary font-medium">Model: {item.selectedModel}</p>
+                          )}
                           <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
                         </div>
                         <span className="text-sm font-medium text-foreground">

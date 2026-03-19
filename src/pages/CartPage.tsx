@@ -94,6 +94,11 @@ const CartPage = () => {
                           <h3 className="font-medium text-foreground line-clamp-2 mb-1">
                             {item.name}
                           </h3>
+                          {item.selectedModel && (
+                            <p className="text-xs text-primary font-medium mb-1">
+                              Model: {item.selectedModel}
+                            </p>
+                          )}
                           {item.category && (
                             <p className="text-xs text-muted-foreground mb-2">
                               {item.category}

@@ -68,25 +68,6 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
   const [uploading, setUploading] = useState(false);
   const [selectedModelIds, setSelectedModelIds] = useState<string[]>([]);
 
-  // Load existing device model assignments for this product
-  useEffect(() => {
-    if (!product?.id) return;
-    const fetchAssignedModels = async () => {
-      const { data } = await supabase
-        .from("product_models")
-        .select("model_id")
-        .eq("product_id", product.id);
-      if (data) setSelectedModelIds(data.map((r: any) => r.model_id));
-    };
-    fetchAssignedModels();
-  }, [product?.id]);
-
-  const toggleModel = (modelId: string) => {
-    setSelectedModelIds((prev) =>
-      prev.includes(modelId) ? prev.filter((id) => id !== modelId) : [...prev, modelId]
-    );
-  };
-
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
@@ -107,6 +88,30 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
       is_bestseller: product?.is_bestseller || false,
     },
   });
+
+  const selectedBrandId = form.watch("brand_id");
+  const filteredModels = selectedBrandId
+    ? deviceModels.filter((m) => m.brand_id === selectedBrandId)
+    : [];
+
+  // Load existing device model assignments for this product
+  useEffect(() => {
+    if (!product?.id) return;
+    const fetchAssignedModels = async () => {
+      const { data } = await supabase
+        .from("product_models")
+        .select("model_id")
+        .eq("product_id", product.id);
+      if (data) setSelectedModelIds(data.map((r: any) => r.model_id));
+    };
+    fetchAssignedModels();
+  }, [product?.id]);
+
+  const toggleModel = (modelId: string) => {
+    setSelectedModelIds((prev) =>
+      prev.includes(modelId) ? prev.filter((id) => id !== modelId) : [...prev, modelId]
+    );
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -490,11 +495,16 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
           <p className="text-xs text-muted-foreground">
             Select which phone models this product fits. Products with same Family Tag + different models will show a model switcher.
           </p>
+          {!selectedBrandId && (
+            <p className="text-xs text-destructive">Select a brand above to see compatible device models.</p>
+          )}
           <div className="flex flex-wrap gap-2 p-3 border border-border rounded-lg bg-card/50 max-h-48 overflow-y-auto">
-            {deviceModels.length === 0 ? (
-              <p className="text-xs text-muted-foreground">No device models created yet. Add them in the Models tab first.</p>
+            {selectedBrandId && filteredModels.length === 0 ? (
+              <p className="text-xs text-muted-foreground">No device models found for this brand. Add them in the Models tab first.</p>
+            ) : !selectedBrandId ? (
+              <p className="text-xs text-muted-foreground">Please select a brand first.</p>
             ) : (
-              deviceModels.map((model) => {
+              filteredModels.map((model) => {
                 const isSelected = selectedModelIds.includes(model.id);
                 return (
                   <button
@@ -509,7 +519,6 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
                   >
                     {isSelected && <Check className="h-3 w-3" />}
                     {model.name}
-                    {model.brand && <span className="opacity-60">({model.brand.name})</span>}
                   </button>
                 );
               })
