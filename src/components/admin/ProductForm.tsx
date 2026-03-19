@@ -482,13 +482,55 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
                 <FormControl>
                   <Input
                     {...field}
-                    placeholder="e.g. iphone-12-silicone-cover"
+                    placeholder="e.g. silicone-case"
                   />
                 </FormControl>
+                <p className="text-xs text-muted-foreground">
+                  Same tag = grouped together. Users can switch between models.
+                </p>
                 <FormMessage />
               </FormItem>
             )}
           />
+        </div>
+
+        {/* Device Model Assignment */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Compatible Device Models</label>
+          <p className="text-xs text-muted-foreground">
+            Select which phone models this product fits. Products with same Family Tag + different models will show a model switcher.
+          </p>
+          <div className="flex flex-wrap gap-2 p-3 border border-border rounded-lg bg-card/50 max-h-48 overflow-y-auto">
+            {deviceModels.length === 0 ? (
+              <p className="text-xs text-muted-foreground">No device models created yet. Add them in the Models tab first.</p>
+            ) : (
+              deviceModels.map((model) => {
+                const isSelected = selectedModelIds.includes(model.id);
+                return (
+                  <button
+                    key={model.id}
+                    type="button"
+                    onClick={() => toggleModel(model.id)}
+                    className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                      isSelected
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background text-foreground border-border hover:border-primary/50"
+                    }`}
+                  >
+                    {isSelected && <Check className="h-3 w-3" />}
+                    {model.name}
+                    {model.brand && <span className="opacity-60">({model.brand.name})</span>}
+                  </button>
+                );
+              })
+            )}
+          </div>
+          {selectedModelIds.length > 0 && (
+            <p className="text-xs text-muted-foreground">{selectedModelIds.length} model(s) selected</p>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
 
           <FormField
             control={form.control}
