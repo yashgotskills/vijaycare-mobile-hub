@@ -25,6 +25,7 @@ interface Order {
   status: string;
   total_amount: number;
   items: any;
+  delivery_address: any;
   payment_method: string | null;
   created_at: string;
 }
