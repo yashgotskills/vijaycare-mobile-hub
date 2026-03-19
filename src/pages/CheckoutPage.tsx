@@ -187,7 +187,8 @@ const CheckoutPage = () => {
         name: item.name,
         price: item.price,
         quantity: item.quantity,
-        image: item.image
+        image: item.image,
+        selectedModel: item.selectedModel || null,
       }));
 
       const { data: orderData, error: orderError } = await supabase.from("orders").insert({
