@@ -63,6 +63,11 @@ interface ProductFormProps {
 const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
   const { data: brands = [] } = useBrands();
   const { data: deviceModels = [] } = useDeviceModels();
+
+  const selectedBrandId = form.watch("brand_id");
+  const filteredModels = selectedBrandId
+    ? deviceModels.filter((m) => m.brand_id === selectedBrandId)
+    : deviceModels;
   const [loading, setLoading] = useState(false);
   const [images, setImages] = useState<string[]>(product?.images || []);
   const [uploading, setUploading] = useState(false);
