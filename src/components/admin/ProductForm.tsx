@@ -207,37 +207,27 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
       }
 
       // Save device model assignments
-      if (productId && selectedModelIds.length > 0) {
-        // Remove old assignments
-        await supabase.rpc("admin_unassign_product_from_model" as any, {
-          _admin_phone: userPhone,
-          _product_id: productId,
-          _model_id: selectedModelIds[0], // dummy, we'll bulk handle below
-        });
+      if (productId) {
+        // Clear all existing assignments first
+        const { data: existing } = await supabase
+          .from("product_models")
+          .select("model_id")
+          .eq("product_id", productId);
 
-        // Clear all existing and re-assign
-        for (const existingId of (await supabase.from("product_models").select("model_id").eq("product_id", productId)).data?.map((r: any) => r.model_id) || []) {
+        for (const row of existing || []) {
           await supabase.rpc("admin_unassign_product_from_model" as any, {
             _admin_phone: userPhone,
             _product_id: productId,
-            _model_id: existingId,
+            _model_id: (row as any).model_id,
           });
         }
 
+        // Assign selected models
         for (const modelId of selectedModelIds) {
           await supabase.rpc("admin_assign_product_to_model" as any, {
             _admin_phone: userPhone,
             _product_id: productId,
             _model_id: modelId,
-          });
-        }
-      } else if (productId && selectedModelIds.length === 0) {
-        // Clear all assignments
-        for (const existingId of (await supabase.from("product_models").select("model_id").eq("product_id", productId)).data?.map((r: any) => r.model_id) || []) {
-          await supabase.rpc("admin_unassign_product_from_model" as any, {
-            _admin_phone: userPhone,
-            _product_id: productId,
-            _model_id: existingId,
           });
         }
       }
