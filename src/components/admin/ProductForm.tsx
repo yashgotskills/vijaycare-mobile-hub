@@ -496,7 +496,7 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
             Select which phone models this product fits. Products with same Family Tag + different models will show a model switcher.
           </p>
           {!selectedBrandId && (
-            <p className="text-xs text-amber-600">Select a brand above to see compatible device models.</p>
+            <p className="text-xs text-destructive">Select a brand above to see compatible device models.</p>
           )}
           <div className="flex flex-wrap gap-2 p-3 border border-border rounded-lg bg-card/50 max-h-48 overflow-y-auto">
             {selectedBrandId && filteredModels.length === 0 ? (
