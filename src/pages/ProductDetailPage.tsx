@@ -254,7 +254,7 @@ const ProductDetailPage = () => {
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Choose a model..." />
                   </SelectTrigger>
-                  <SelectContent position="popper" className="max-h-60 overflow-y-auto">
+                  <SelectContent position="popper" className="max-h-60 overflow-y-auto" sideOffset={4}>
                     {assignedModels.map((model: any) => (
                       <SelectItem key={model.id} value={model.name}>
                         {model.name}
