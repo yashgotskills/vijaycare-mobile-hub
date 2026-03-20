@@ -198,12 +198,12 @@ const CategoryPage = () => {
               <Smartphone className="w-4 h-4 text-muted-foreground" />
               <span className="text-sm font-medium text-muted-foreground">Filter by Model</span>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
               <Button
                 variant={selectedModelId === null ? "default" : "outline"}
                 size="sm"
                 onClick={() => setSelectedModelId(null)}
-                className="rounded-full"
+                className="rounded-full shrink-0"
               >
                 All
               </Button>
@@ -213,7 +213,7 @@ const CategoryPage = () => {
                   variant={selectedModelId === model.id ? "default" : "outline"}
                   size="sm"
                   onClick={() => setSelectedModelId(selectedModelId === model.id ? null : model.id)}
-                  className="rounded-full"
+                  className="rounded-full shrink-0"
                 >
                   {model.name}
                 </Button>
