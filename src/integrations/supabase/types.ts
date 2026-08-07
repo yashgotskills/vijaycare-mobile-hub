@@ -336,6 +336,7 @@ export type Database = {
           description: string | null
           discount_percentage: number | null
           family_tag: string | null
+          has_lifetime_warranty: boolean
           id: string
           images: Json | null
           is_bestseller: boolean | null
@@ -362,6 +363,7 @@ export type Database = {
           description?: string | null
           discount_percentage?: number | null
           family_tag?: string | null
+          has_lifetime_warranty?: boolean
           id?: string
           images?: Json | null
           is_bestseller?: boolean | null
@@ -388,6 +390,7 @@ export type Database = {
           description?: string | null
           discount_percentage?: number | null
           family_tag?: string | null
+          has_lifetime_warranty?: boolean
           id?: string
           images?: Json | null
           is_bestseller?: boolean | null
@@ -634,6 +637,77 @@ export type Database = {
         }
         Relationships: []
       }
+      warranty_claims: {
+        Row: {
+          admin_notes: string | null
+          bill_number: string | null
+          claim_number: string
+          created_at: string
+          customer_name: string
+          id: string
+          issue_description: string
+          order_number: string | null
+          photos: Json
+          product_id: string | null
+          product_name: string
+          purchase_date: string | null
+          purchase_source: string
+          resolution: string | null
+          status: string
+          store_name: string | null
+          updated_at: string
+          user_phone: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          bill_number?: string | null
+          claim_number: string
+          created_at?: string
+          customer_name: string
+          id?: string
+          issue_description: string
+          order_number?: string | null
+          photos?: Json
+          product_id?: string | null
+          product_name: string
+          purchase_date?: string | null
+          purchase_source?: string
+          resolution?: string | null
+          status?: string
+          store_name?: string | null
+          updated_at?: string
+          user_phone: string
+        }
+        Update: {
+          admin_notes?: string | null
+          bill_number?: string | null
+          claim_number?: string
+          created_at?: string
+          customer_name?: string
+          id?: string
+          issue_description?: string
+          order_number?: string | null
+          photos?: Json
+          product_id?: string | null
+          product_name?: string
+          purchase_date?: string | null
+          purchase_source?: string
+          resolution?: string | null
+          status?: string
+          store_name?: string | null
+          updated_at?: string
+          user_phone?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warranty_claims_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -742,6 +816,35 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      admin_list_warranty_claims: {
+        Args: { _admin_phone: string }
+        Returns: {
+          admin_notes: string | null
+          bill_number: string | null
+          claim_number: string
+          created_at: string
+          customer_name: string
+          id: string
+          issue_description: string
+          order_number: string | null
+          photos: Json
+          product_id: string | null
+          product_name: string
+          purchase_date: string | null
+          purchase_source: string
+          resolution: string | null
+          status: string
+          store_name: string | null
+          updated_at: string
+          user_phone: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "warranty_claims"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       admin_unassign_product_from_model: {
         Args: { _admin_phone: string; _model_id: string; _product_id: string }
         Returns: Json
@@ -773,6 +876,41 @@ export type Database = {
       admin_update_repair_status: {
         Args: { _admin_phone: string; _new_status: string; _repair_id: string }
         Returns: Json
+      }
+      admin_update_warranty_claim: {
+        Args: {
+          _admin_notes?: string
+          _admin_phone: string
+          _id: string
+          _resolution?: string
+          _status: string
+        }
+        Returns: {
+          admin_notes: string | null
+          bill_number: string | null
+          claim_number: string
+          created_at: string
+          customer_name: string
+          id: string
+          issue_description: string
+          order_number: string | null
+          photos: Json
+          product_id: string | null
+          product_name: string
+          purchase_date: string | null
+          purchase_source: string
+          resolution: string | null
+          status: string
+          store_name: string | null
+          updated_at: string
+          user_phone: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "warranty_claims"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       create_order: {
         Args: {
@@ -834,6 +972,47 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "repair_requests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      create_warranty_claim: {
+        Args: {
+          _bill_number?: string
+          _customer_name: string
+          _issue_description: string
+          _order_number?: string
+          _photos?: Json
+          _product_id?: string
+          _product_name: string
+          _purchase_date?: string
+          _purchase_source?: string
+          _store_name?: string
+          _user_phone: string
+        }
+        Returns: {
+          admin_notes: string | null
+          bill_number: string | null
+          claim_number: string
+          created_at: string
+          customer_name: string
+          id: string
+          issue_description: string
+          order_number: string | null
+          photos: Json
+          product_id: string | null
+          product_name: string
+          purchase_date: string | null
+          purchase_source: string
+          resolution: string | null
+          status: string
+          store_name: string | null
+          updated_at: string
+          user_phone: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "warranty_claims"
           isOneToOne: true
           isSetofReturn: false
         }
@@ -926,6 +1105,35 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "repair_requests"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_warranty_claims_by_phone: {
+        Args: { _user_phone: string }
+        Returns: {
+          admin_notes: string | null
+          bill_number: string | null
+          claim_number: string
+          created_at: string
+          customer_name: string
+          id: string
+          issue_description: string
+          order_number: string | null
+          photos: Json
+          product_id: string | null
+          product_name: string
+          purchase_date: string | null
+          purchase_source: string
+          resolution: string | null
+          status: string
+          store_name: string | null
+          updated_at: string
+          user_phone: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "warranty_claims"
           isOneToOne: false
           isSetofReturn: true
         }
