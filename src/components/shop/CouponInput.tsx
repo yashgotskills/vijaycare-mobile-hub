@@ -27,55 +27,29 @@ const CouponInput = ({ subtotal, onApply, onRemove, appliedCode, appliedDiscount
     setIsValidating(true);
 
     try {
-      const { data: coupon, error } = await supabase
-        .from("coupons")
-        .select("*")
-        .eq("code", code.trim().toUpperCase())
-        .eq("is_active", true)
-        .maybeSingle();
+      const { data, error } = await supabase.rpc("validate_coupon" as any, {
+        _code: code.trim().toUpperCase(),
+        _subtotal: subtotal,
+      });
 
       if (error) throw error;
 
-      if (!coupon) {
-        toast.error("Invalid coupon code");
+      const coupon = data as any;
+
+      if (!coupon?.valid) {
+        toast.error(coupon?.error || "Invalid coupon code");
         return;
       }
-
-      // Check expiry
-      if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) {
-        toast.error("This coupon has expired");
-        return;
-      }
-
-      // Check start date
-      if (coupon.starts_at && new Date(coupon.starts_at) > new Date()) {
-        toast.error("This coupon is not yet active");
-        return;
-      }
-
-      // Check minimum order amount
-      if (coupon.min_order_amount && subtotal < coupon.min_order_amount) {
-        toast.error(`Minimum order amount is ₹${coupon.min_order_amount.toLocaleString()}`);
-        return;
-      }
-
-      // Check max uses
-      if (coupon.max_uses && coupon.used_count && coupon.used_count >= coupon.max_uses) {
-        toast.error("This coupon has reached its usage limit");
-        return;
-      }
-
-      // Coupon-specific rules can be added here if needed.
 
       // Calculate discount
       let discount = 0;
       if (coupon.discount_type === "percentage") {
-        discount = (subtotal * coupon.discount_value) / 100;
+        discount = (subtotal * Number(coupon.discount_value)) / 100;
         if (coupon.max_discount_amount) {
-          discount = Math.min(discount, coupon.max_discount_amount);
+          discount = Math.min(discount, Number(coupon.max_discount_amount));
         }
       } else {
-        discount = coupon.discount_value;
+        discount = Number(coupon.discount_value);
       }
 
       onApply(discount, coupon.code);

@@ -643,6 +643,7 @@ export type Database = {
         Args: { _admin_phone: string; _model_id: string; _product_id: string }
         Returns: Json
       }
+      admin_dashboard_stats: { Args: { _admin_phone: string }; Returns: Json }
       admin_delete_banner: {
         Args: { _admin_phone: string; _banner_id: string }
         Returns: Json
@@ -694,6 +695,53 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      admin_list_orders: {
+        Args: { _admin_phone: string }
+        Returns: {
+          created_at: string
+          delivery_address: Json | null
+          id: string
+          items: Json
+          order_number: string
+          payment_method: string | null
+          status: string
+          total_amount: number
+          updated_at: string
+          user_phone: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "orders"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      admin_list_repair_requests: {
+        Args: { _admin_phone: string }
+        Returns: {
+          address: string
+          brand: string
+          created_at: string
+          customer_name: string
+          device_type: string
+          id: string
+          issue_description: string | null
+          model: string | null
+          preferred_date: string
+          preferred_time: string
+          repair_type: string
+          request_number: string
+          status: string
+          updated_at: string
+          user_phone: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "repair_requests"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       admin_unassign_product_from_model: {
         Args: { _admin_phone: string; _model_id: string; _product_id: string }
         Returns: Json
@@ -726,6 +774,162 @@ export type Database = {
         Args: { _admin_phone: string; _new_status: string; _repair_id: string }
         Returns: Json
       }
+      create_order: {
+        Args: {
+          _delivery_address: Json
+          _items: Json
+          _payment_method: string
+          _total_amount: number
+          _user_phone: string
+        }
+        Returns: {
+          created_at: string
+          delivery_address: Json | null
+          id: string
+          items: Json
+          order_number: string
+          payment_method: string | null
+          status: string
+          total_amount: number
+          updated_at: string
+          user_phone: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      create_repair_request: {
+        Args: {
+          _address: string
+          _brand: string
+          _customer_name: string
+          _device_type: string
+          _issue_description: string
+          _model: string
+          _preferred_date: string
+          _preferred_time: string
+          _repair_type: string
+          _user_phone: string
+        }
+        Returns: {
+          address: string
+          brand: string
+          created_at: string
+          customer_name: string
+          device_type: string
+          id: string
+          issue_description: string | null
+          model: string | null
+          preferred_date: string
+          preferred_time: string
+          repair_type: string
+          request_number: string
+          status: string
+          updated_at: string
+          user_phone: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "repair_requests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      delete_address: {
+        Args: { _address_id: string; _user_phone: string }
+        Returns: undefined
+      }
+      delete_push_subscription: {
+        Args: { _endpoint: string }
+        Returns: undefined
+      }
+      get_addresses: {
+        Args: { _user_phone: string }
+        Returns: {
+          address_line1: string
+          address_line2: string | null
+          city: string
+          created_at: string
+          full_name: string
+          id: string
+          is_default: boolean | null
+          label: string
+          phone: string
+          pincode: string
+          state: string
+          updated_at: string
+          user_phone: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "addresses"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_order_tracking: {
+        Args: { _order_number: string }
+        Returns: {
+          created_at: string
+          id: string
+          items: Json
+          order_number: string
+          payment_method: string
+          status: string
+          total_amount: number
+          updated_at: string
+        }[]
+      }
+      get_orders_by_phone: {
+        Args: { _user_phone: string }
+        Returns: {
+          created_at: string
+          delivery_address: Json | null
+          id: string
+          items: Json
+          order_number: string
+          payment_method: string | null
+          status: string
+          total_amount: number
+          updated_at: string
+          user_phone: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "orders"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_repair_requests_by_phone: {
+        Args: { _user_phone: string }
+        Returns: {
+          address: string
+          brand: string
+          created_at: string
+          customer_name: string
+          device_type: string
+          id: string
+          issue_description: string | null
+          model: string | null
+          preferred_date: string
+          preferred_time: string
+          repair_type: string
+          request_number: string
+          status: string
+          updated_at: string
+          user_phone: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "repair_requests"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -733,7 +937,62 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_coupon_usage: { Args: { _code: string }; Returns: undefined }
+      is_valid_phone: { Args: { _phone: string }; Returns: boolean }
+      save_address: {
+        Args: {
+          _address_id: string
+          _address_line1: string
+          _address_line2: string
+          _city: string
+          _full_name: string
+          _is_default: boolean
+          _label: string
+          _phone: string
+          _pincode: string
+          _state: string
+          _user_phone: string
+        }
+        Returns: {
+          address_line1: string
+          address_line2: string | null
+          city: string
+          created_at: string
+          full_name: string
+          id: string
+          is_default: boolean | null
+          label: string
+          phone: string
+          pincode: string
+          state: string
+          updated_at: string
+          user_phone: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "addresses"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      save_push_subscription: {
+        Args: {
+          _auth: string
+          _endpoint: string
+          _p256dh: string
+          _user_phone: string
+        }
+        Returns: undefined
+      }
+      set_default_address: {
+        Args: { _address_id: string; _user_phone: string }
+        Returns: undefined
+      }
       set_user_context: { Args: { user_phone: string }; Returns: undefined }
+      validate_coupon: {
+        Args: { _code: string; _subtotal: number }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "user"

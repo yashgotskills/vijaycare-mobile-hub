@@ -18,7 +18,7 @@ interface Order {
   status: string;
   total_amount: number;
   items: any;
-  delivery_address: any;
+  delivery_address?: any;
   payment_method: string | null;
   created_at: string;
   updated_at: string;
@@ -74,16 +74,15 @@ const OrderTrackingPage = () => {
 
   const fetchOrder = async (orderNum: string) => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("orders")
-      .select("*")
-      .eq("order_number", orderNum)
-      .single();
+    const { data, error } = await supabase.rpc("get_order_tracking" as any, {
+      _order_number: orderNum,
+    });
+    const row = Array.isArray(data) ? data[0] : null;
 
-    if (error || !data) {
+    if (error || !row) {
       setOrder(null);
     } else {
-      setOrder(data);
+      setOrder(row as Order);
     }
     setLoading(false);
   };

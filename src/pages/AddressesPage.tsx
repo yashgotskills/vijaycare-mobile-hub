@@ -68,15 +68,12 @@ const AddressesPage = () => {
 
   const fetchAddresses = async () => {
     try {
-      const { data, error } = await supabase
-        .from("addresses")
-        .select("*")
-        .eq("user_phone", userPhone)
-        .order("is_default", { ascending: false })
-        .order("created_at", { ascending: false });
+      const { data, error } = await supabase.rpc("get_addresses" as any, {
+        _user_phone: userPhone,
+      });
 
       if (error) throw error;
-      setAddresses(data || []);
+      setAddresses((data as any[]) || []);
     } catch (error) {
       console.error("Error fetching addresses:", error);
       toast.error("Failed to load addresses");
@@ -132,37 +129,22 @@ const AddressesPage = () => {
     setIsSaving(true);
 
     try {
-      // If setting as default, unset others first
-      if (formData.is_default) {
-        await supabase
-          .from("addresses")
-          .update({ is_default: false })
-          .eq("user_phone", userPhone);
-      }
+      const { error } = await supabase.rpc("save_address" as any, {
+        _user_phone: userPhone,
+        _address_id: editingAddress ? editingAddress.id : null,
+        _label: formData.label,
+        _full_name: formData.full_name,
+        _phone: formData.phone,
+        _address_line1: formData.address_line1,
+        _address_line2: formData.address_line2 || null,
+        _city: formData.city,
+        _state: formData.state,
+        _pincode: formData.pincode,
+        _is_default: formData.is_default,
+      });
 
-      if (editingAddress) {
-        // Update existing
-        const { error } = await supabase
-          .from("addresses")
-          .update({
-            ...formData,
-            address_line2: formData.address_line2 || null,
-          })
-          .eq("id", editingAddress.id);
-
-        if (error) throw error;
-        toast.success("Address updated successfully");
-      } else {
-        // Create new
-        const { error } = await supabase.from("addresses").insert({
-          ...formData,
-          address_line2: formData.address_line2 || null,
-          user_phone: userPhone,
-        });
-
-        if (error) throw error;
-        toast.success("Address added successfully");
-      }
+      if (error) throw error;
+      toast.success(editingAddress ? "Address updated successfully" : "Address added successfully");
 
       setIsDialogOpen(false);
       fetchAddresses();
@@ -178,7 +160,10 @@ const AddressesPage = () => {
     if (!confirm("Are you sure you want to delete this address?")) return;
 
     try {
-      const { error } = await supabase.from("addresses").delete().eq("id", id);
+      const { error } = await supabase.rpc("delete_address" as any, {
+        _user_phone: userPhone,
+        _address_id: id,
+      });
       if (error) throw error;
       toast.success("Address deleted");
       fetchAddresses();
@@ -190,17 +175,10 @@ const AddressesPage = () => {
 
   const handleSetDefault = async (id: string) => {
     try {
-      // Unset all defaults first
-      await supabase
-        .from("addresses")
-        .update({ is_default: false })
-        .eq("user_phone", userPhone);
-
-      // Set new default
-      const { error } = await supabase
-        .from("addresses")
-        .update({ is_default: true })
-        .eq("id", id);
+      const { error } = await supabase.rpc("set_default_address" as any, {
+        _user_phone: userPhone,
+        _address_id: id,
+      });
 
       if (error) throw error;
       toast.success("Default address updated");

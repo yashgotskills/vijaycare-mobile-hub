@@ -191,13 +191,11 @@ const CheckoutPage = () => {
         selectedModel: item.selectedModel || null,
       }));
 
-      const { data: orderData, error: orderError } = await supabase.from("orders").insert({
-        order_number: "",
-        user_phone: customerForm.phone,
-        items: orderItems,
-        total_amount: total,
-        status: "Processing",
-        delivery_address: {
+      const { data: orderData, error: orderError } = await supabase.rpc("create_order" as any, {
+        _user_phone: customerForm.phone,
+        _items: orderItems,
+        _total_amount: total,
+        _delivery_address: {
           full_name: customerForm.fullName,
           phone: customerForm.phone,
           address: customerForm.address,
@@ -205,25 +203,14 @@ const CheckoutPage = () => {
           state: customerForm.state,
           pincode: customerForm.pincode,
         },
-        payment_method: selectedPayment
-      }).select().single();
+        _payment_method: selectedPayment,
+      });
 
       if (orderError) throw orderError;
 
       // Update coupon usage if applied
       if (appliedCoupon) {
-        const { data: couponData } = await supabase
-          .from("coupons")
-          .select("used_count")
-          .eq("code", appliedCoupon)
-          .single();
-        
-        if (couponData) {
-          await supabase
-            .from("coupons")
-            .update({ used_count: (couponData.used_count || 0) + 1 })
-            .eq("code", appliedCoupon);
-        }
+        await supabase.rpc("increment_coupon_usage" as any, { _code: appliedCoupon });
       }
 
       if (selectedPayment === "razorpay") {

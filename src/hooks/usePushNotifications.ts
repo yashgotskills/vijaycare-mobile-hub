@@ -76,13 +76,11 @@ export const usePushNotifications = () => {
       const subscriptionJson = subscription.toJSON();
 
       // Save subscription to database
-      const { error } = await supabase.from("push_subscriptions").upsert({
-        user_phone: userPhone,
-        endpoint: subscriptionJson.endpoint!,
-        p256dh: subscriptionJson.keys!.p256dh,
-        auth: subscriptionJson.keys!.auth,
-      }, {
-        onConflict: "endpoint"
+      const { error } = await supabase.rpc("save_push_subscription" as any, {
+        _user_phone: userPhone,
+        _endpoint: subscriptionJson.endpoint!,
+        _p256dh: subscriptionJson.keys!.p256dh,
+        _auth: subscriptionJson.keys!.auth,
       });
 
       if (error) throw error;
@@ -110,10 +108,9 @@ export const usePushNotifications = () => {
         await subscription.unsubscribe();
 
         // Remove from database
-        await supabase
-          .from("push_subscriptions")
-          .delete()
-          .eq("endpoint", subscription.endpoint);
+        await supabase.rpc("delete_push_subscription" as any, {
+          _endpoint: subscription.endpoint,
+        });
       }
 
       setIsSubscribed(false);

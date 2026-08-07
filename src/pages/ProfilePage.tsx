@@ -56,24 +56,22 @@ const ProfilePage = () => {
     setIsLoading(true);
     try {
       // Fetch orders
-      const { data: ordersData, error: ordersError } = await supabase
-        .from("orders")
-        .select("*")
-        .eq("user_phone", userPhone)
-        .order("created_at", { ascending: false });
+      const { data: ordersData, error: ordersError } = await supabase.rpc(
+        "get_orders_by_phone" as any,
+        { _user_phone: userPhone },
+      );
 
       if (ordersError) throw ordersError;
-      setOrders(ordersData || []);
+      setOrders((ordersData as any[]) || []);
 
       // Fetch repair requests
-      const { data: repairsData, error: repairsError } = await supabase
-        .from("repair_requests")
-        .select("*")
-        .eq("user_phone", userPhone)
-        .order("created_at", { ascending: false });
+      const { data: repairsData, error: repairsError } = await supabase.rpc(
+        "get_repair_requests_by_phone" as any,
+        { _user_phone: userPhone },
+      );
 
       if (repairsError) throw repairsError;
-      setRepairRequests(repairsData || []);
+      setRepairRequests((repairsData as any[]) || []);
     } catch (error) {
       console.error("Error fetching user data:", error);
     } finally {
