@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   ChevronLeft,
@@ -383,6 +383,19 @@ const ProductDetailPage = () => {
                 <span className="text-muted-foreground">Easy Returns</span>
               </div>
             </div>
+
+            {product.has_lifetime_warranty && (
+              <Link
+                to="/warranty"
+                className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 p-3 hover:bg-primary/10 transition-colors"
+              >
+                <Shield className="h-5 w-5 text-primary flex-shrink-0" />
+                <span className="text-sm">
+                  <span className="font-medium">Lifetime warranty</span>
+                  <span className="text-muted-foreground"> on internal faults — view policy & claim</span>
+                </span>
+              </Link>
+            )}
           </div>
         </div>
 

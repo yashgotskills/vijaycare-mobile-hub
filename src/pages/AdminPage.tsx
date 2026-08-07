@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Package, RefreshCw, Bell, Users, Image, Smartphone } from "lucide-react";
+import { ArrowLeft, Package, RefreshCw, Bell, Users, Image, Smartphone, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
@@ -16,6 +16,7 @@ import CategoriesTab from "@/components/admin/CategoriesTab";
 import UsersTab from "@/components/admin/UsersTab";
 import BannersTab from "@/components/admin/BannersTab";
 import ModelsTab from "@/components/admin/ModelsTab";
+import WarrantyTab, { type WarrantyClaim } from "@/components/admin/WarrantyTab";
 import type { Product, Category } from "@/types/product";
 
 interface Order {
@@ -51,6 +52,7 @@ const AdminPage = () => {
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [repairs, setRepairs] = useState<RepairRequest[]>([]);
+  const [warrantyClaims, setWarrantyClaims] = useState<WarrantyClaim[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -145,6 +147,7 @@ const AdminPage = () => {
     await Promise.all([
       fetchOrders(),
       fetchRepairs(),
+      fetchWarrantyClaims(),
       fetchProducts(),
       fetchCategories(),
       fetchStats()
@@ -170,6 +173,16 @@ const AdminPage = () => {
     });
 
     if (!error) setRepairs((data as any[]) || []);
+  };
+
+  const fetchWarrantyClaims = async () => {
+    const adminPhone = localStorage.getItem("vijaycare_user");
+    if (!adminPhone) return;
+    const { data, error } = await supabase.rpc("admin_list_warranty_claims" as any, {
+      _admin_phone: adminPhone,
+    });
+
+    if (!error) setWarrantyClaims((data as any[]) || []);
   };
 
   const fetchProducts = async () => {
@@ -269,7 +282,7 @@ const AdminPage = () => {
             setActiveTab(val);
             if (val === "orders") setNewOrdersCount(0);
           }} className="w-full">
-            <TabsList className="grid w-full grid-cols-7 mb-6">
+            <TabsList className="grid w-full grid-cols-4 md:grid-cols-8 mb-6 h-auto">
               <TabsTrigger value="orders" className="gap-2 relative">
                 Orders ({orders.length})
                 {newOrdersCount > 0 && (
@@ -280,6 +293,10 @@ const AdminPage = () => {
               </TabsTrigger>
               <TabsTrigger value="repairs" className="gap-2">
                 Repairs ({repairs.length})
+              </TabsTrigger>
+              <TabsTrigger value="warranty" className="gap-2">
+                <ShieldCheck className="w-4 h-4" />
+                Warranty ({warrantyClaims.length})
               </TabsTrigger>
               <TabsTrigger value="products" className="gap-2">
                 Products ({products.length})
@@ -314,6 +331,14 @@ const AdminPage = () => {
                 repairs={repairs} 
                 loading={loading} 
                 onRefresh={() => { fetchRepairs(); fetchStats(); }} 
+              />
+            </TabsContent>
+
+            <TabsContent value="warranty">
+              <WarrantyTab
+                claims={warrantyClaims}
+                loading={loading}
+                onRefresh={fetchWarrantyClaims}
               />
             </TabsContent>
 

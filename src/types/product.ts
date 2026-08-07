@@ -15,6 +15,7 @@ export interface Product {
   is_featured: boolean;
   is_new: boolean;
   is_bestseller: boolean;
+  has_lifetime_warranty?: boolean;
   images: string[];
   variants: ProductVariant[];
   specifications: Record<string, string>;
