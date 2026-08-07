@@ -44,6 +44,7 @@ const productSchema = z.object({
   is_featured: z.boolean().default(false),
   is_new: z.boolean().default(false),
   is_bestseller: z.boolean().default(false),
+  has_lifetime_warranty: z.boolean().default(false),
 });
 
 const generateUniqueSlug = (name: string) => {
@@ -86,6 +87,7 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
       is_featured: product?.is_featured || false,
       is_new: product?.is_new || false,
       is_bestseller: product?.is_bestseller || false,
+      has_lifetime_warranty: product?.has_lifetime_warranty || false,
     },
   });
 
@@ -178,6 +180,7 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
       is_featured: values.is_featured,
       is_new: values.is_new,
       is_bestseller: values.is_bestseller,
+      has_lifetime_warranty: values.has_lifetime_warranty,
       images,
     };
 
@@ -609,6 +612,22 @@ const ProductForm = ({ product, categories, onSuccess }: ProductFormProps) => {
                   />
                 </FormControl>
                 <FormLabel className="!mt-0">New Arrival</FormLabel>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="has_lifetime_warranty"
+            render={({ field }) => (
+              <FormItem className="flex items-center gap-2">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <FormLabel className="!mt-0">Lifetime Warranty</FormLabel>
               </FormItem>
             )}
           />

@@ -25,6 +25,7 @@ import SearchResultsPage from "./pages/SearchResultsPage";
 import AddressesPage from "./pages/AddressesPage";
 import ComparePage from "./pages/ComparePage";
 import OrderTrackingPage from "./pages/OrderTrackingPage";
+import WarrantyPage from "./pages/WarrantyPage";
 import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
 
@@ -161,6 +162,14 @@ const App = () => (
                    element={
                      <PageTransition>
                        <OrderTrackingPage />
+                     </PageTransition>
+                   }
+                 />
+                 <Route
+                   path="/warranty"
+                   element={
+                     <PageTransition>
+                       <WarrantyPage />
                      </PageTransition>
                    }
                  />
