@@ -153,21 +153,23 @@ const AdminPage = () => {
   };
 
   const fetchOrders = async () => {
-    const { data, error } = await supabase
-      .from("orders")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const adminPhone = localStorage.getItem("vijaycare_user");
+    if (!adminPhone) return;
+    const { data, error } = await supabase.rpc("admin_list_orders" as any, {
+      _admin_phone: adminPhone,
+    });
 
-    if (!error) setOrders(data || []);
+    if (!error) setOrders((data as any[]) || []);
   };
 
   const fetchRepairs = async () => {
-    const { data, error } = await supabase
-      .from("repair_requests")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const adminPhone = localStorage.getItem("vijaycare_user");
+    if (!adminPhone) return;
+    const { data, error } = await supabase.rpc("admin_list_repair_requests" as any, {
+      _admin_phone: adminPhone,
+    });
 
-    if (!error) setRepairs(data || []);
+    if (!error) setRepairs((data as any[]) || []);
   };
 
   const fetchProducts = async () => {
@@ -189,13 +191,14 @@ const AdminPage = () => {
   };
 
   const fetchStats = async () => {
-    const [ordersResult, repairsResult] = await Promise.all([
-      supabase.from("orders").select("status, total_amount"),
-      supabase.from("repair_requests").select("status")
-    ]);
+    const adminPhone = localStorage.getItem("vijaycare_user");
+    if (!adminPhone) return;
+    const { data: statsData } = await supabase.rpc("admin_dashboard_stats" as any, {
+      _admin_phone: adminPhone,
+    });
 
-    const allOrders = ordersResult.data || [];
-    const allRepairs = repairsResult.data || [];
+    const allOrders = ((statsData as any)?.orders || []) as { status: string; total_amount: number }[];
+    const allRepairs = ((statsData as any)?.repairs || []) as { status: string }[];
 
     const totalRevenue = allOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
     const pendingOrders = allOrders.filter(o => 
