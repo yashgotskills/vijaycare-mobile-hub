@@ -72,14 +72,18 @@ const BrandMarquee = () => {
 
     const scrollContainer = scrollRef.current;
     let animationId: number;
-    const scrollSpeed = 0.5;
+    let lastTime = 0;
+    const pixelsPerSecond = 36; // time-based so the speed is frame-rate independent
 
-    const animate = () => {
+    const animate = (time: number) => {
+      const delta = lastTime ? Math.min(time - lastTime, 100) : 0;
+      lastTime = time;
+
       // Only auto-scroll if not paused and not being touched/dragged
       if (scrollContainer && !isPaused && !isTouchingRef.current && !isDragging) {
         const singleSetWidth = scrollContainer.scrollWidth / 2;
         // Keep a fractional accumulator so sub-pixel speeds are not rounded away
-        posRef.current += scrollSpeed;
+        posRef.current += (pixelsPerSecond * delta) / 1000;
         if (singleSetWidth > 0 && posRef.current >= singleSetWidth) {
           posRef.current -= singleSetWidth;
         }
