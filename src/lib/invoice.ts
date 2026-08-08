@@ -103,26 +103,36 @@ export const downloadInvoicePdf = (order: InvoiceOrder) => {
   y += 34;
 
   if (eligible.length > 0) {
+    const boxWidth = pageWidth - marginX * 2;
+    const textWidth = boxWidth - 24;
+    const covLines = doc.splitTextToSize(`Covered items: ${eligible.join(", ")}`, textWidth);
+    const noteLines = doc.splitTextToSize(WARRANTY_SUMMARY, textWidth);
+    const claimLines = doc.splitTextToSize(
+      "Keep this receipt as proof of purchase. Raise a claim on the Warranty page of the VijayCare app.",
+      textWidth
+    );
+
+    const lineHeight = 12;
+    const boxHeight =
+      34 + (covLines.length + noteLines.length + claimLines.length) * lineHeight + 20;
+
     doc.setDrawColor(120);
-    doc.roundedRect(marginX, y - 14, pageWidth - marginX * 2, 92, 6, 6);
+    doc.roundedRect(marginX, y - 14, boxWidth, boxHeight, 6, 6);
+
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
     doc.text("Lifetime Warranty Certificate", marginX + 12, y + 4);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
-    const covLines = doc.splitTextToSize(
-      `Covered items: ${eligible.join(", ")}`,
-      pageWidth - marginX * 2 - 24
-    );
-    doc.text(covLines, marginX + 12, y + 20);
-    const noteLines = doc.splitTextToSize(WARRANTY_SUMMARY, pageWidth - marginX * 2 - 24);
-    doc.text(noteLines, marginX + 12, y + 20 + covLines.length * 11 + 6);
-    doc.text(
-      "Keep this receipt as proof of purchase. Raise a claim at vijaycare /warranty.",
-      marginX + 12,
-      y + 66
-    );
-    y += 100;
+
+    let ty = y + 22;
+    doc.text(covLines, marginX + 12, ty);
+    ty += covLines.length * lineHeight + 8;
+    doc.text(noteLines, marginX + 12, ty);
+    ty += noteLines.length * lineHeight + 8;
+    doc.text(claimLines, marginX + 12, ty);
+
+    y += boxHeight + 10;
   }
 
   doc.setFontSize(8);
