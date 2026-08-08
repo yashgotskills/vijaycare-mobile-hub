@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search } from "lucide-react";
+import { Search, Download } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -52,6 +52,23 @@ const WarrantyTab = ({ claims, loading, onRefresh }: WarrantyTabProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [notes, setNotes] = useState<Record<string, string>>({});
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+
+  const statusMessage = (status: string, claimNumber: string, product: string) => {
+    switch (status) {
+      case "Under Review":
+        return `Claim ${claimNumber} for ${product} is now under review by our team.`;
+      case "Approved":
+        return `Good news! Claim ${claimNumber} for ${product} has been approved.`;
+      case "Rejected":
+        return `Claim ${claimNumber} for ${product} was rejected. Check the notes or contact us for details.`;
+      case "Replaced":
+        return `Claim ${claimNumber}: your ${product} has been replaced under lifetime warranty.`;
+      default:
+        return `Claim ${claimNumber} for ${product} is received and pending review.`;
+    }
+  };
 
   const updateClaim = async (id: string, status: string) => {
     const adminPhone = localStorage.getItem("vijaycare_user");
@@ -67,7 +84,20 @@ const WarrantyTab = ({ claims, loading, onRefresh }: WarrantyTabProps) => {
         _admin_notes: notes[id]?.trim() || null,
       });
       if (error) throw error;
-      toast.success(`Claim marked as ${status}`);
+
+      const claim = claims.find((c) => c.id === id);
+      if (claim) {
+        supabase.functions.invoke("send-push-notification", {
+          body: {
+            user_phone: claim.user_phone,
+            title: `Warranty claim ${status}`,
+            body: statusMessage(status, claim.claim_number, claim.product_name),
+            data: { type: "warranty_status", claim_number: claim.claim_number, status },
+          },
+        }).catch(console.error);
+      }
+
+      toast.success(`Claim marked as ${status} — customer notified`);
       onRefresh();
     } catch (err: any) {
       toast.error(err?.message || "Failed to update claim");
@@ -82,8 +112,49 @@ const WarrantyTab = ({ claims, loading, onRefresh }: WarrantyTabProps) => {
       c.customer_name.toLowerCase().includes(term) ||
       c.product_name.toLowerCase().includes(term);
     const matchesStatus = filterStatus === "all" || c.status === filterStatus;
-    return matchesSearch && matchesStatus;
+    const created = c.created_at.slice(0, 10);
+    const matchesFrom = !fromDate || created >= fromDate;
+    const matchesTo = !toDate || created <= toDate;
+    return matchesSearch && matchesStatus && matchesFrom && matchesTo;
   });
+
+  const exportCsv = () => {
+    if (filtered.length === 0) {
+      toast.error("No claims match the current filters");
+      return;
+    }
+    const headers = [
+      "Claim Number", "Date", "Customer", "Phone", "Product", "Purchase Source",
+      "Order Number", "Bill Number", "Store", "Purchase Date", "Issue", "Status",
+      "Admin Notes", "Resolution",
+    ];
+    const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const rows = filtered.map((c) => [
+      c.claim_number,
+      new Date(c.created_at).toLocaleDateString("en-IN"),
+      c.customer_name,
+      c.user_phone,
+      c.product_name,
+      c.purchase_source,
+      c.order_number,
+      c.bill_number,
+      c.store_name,
+      c.purchase_date,
+      c.issue_description,
+      c.status,
+      c.admin_notes,
+      c.resolution,
+    ].map(esc).join(","));
+    const csv = [headers.map(esc).join(","), ...rows].join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `warranty-claims-${fromDate || "all"}-to-${toDate || "today"}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`Exported ${filtered.length} claim(s)`);
+  };
 
   return (
     <div className="space-y-4">
@@ -110,6 +181,25 @@ const WarrantyTab = ({ claims, loading, onRefresh }: WarrantyTabProps) => {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="flex flex-col md:flex-row gap-4 mt-4">
+            <div className="flex-1">
+              <label className="text-xs text-muted-foreground">From date</label>
+              <Input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+            </div>
+            <div className="flex-1">
+              <label className="text-xs text-muted-foreground">To date</label>
+              <Input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
+            </div>
+            <div className="flex items-end gap-2">
+              <Button variant="outline" onClick={() => { setFromDate(""); setToDate(""); }}>
+                Clear dates
+              </Button>
+              <Button onClick={exportCsv}>
+                <Download className="w-4 h-4 mr-2" />
+                Export CSV ({filtered.length})
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
