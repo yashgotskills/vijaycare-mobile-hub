@@ -10,6 +10,7 @@ export interface CartItem {
   quantity: number;
   category?: string;
   selectedModel?: string;
+  hasLifetimeWarranty?: boolean;
 }
 
 interface CartContextType {

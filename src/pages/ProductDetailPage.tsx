@@ -27,6 +27,7 @@ import Footer from "@/components/Footer";
 import ProductGrid from "@/components/shop/ProductGrid";
 import ReviewForm from "@/components/shop/ReviewForm";
 import { useProduct, useProductFamilyVariants, useProductAssignedModels, useProducts, useProductReviews, type ProductModelVariant } from "@/hooks/useProducts";
+import { isWarrantyEligible } from "@/lib/warranty";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { toast } from "sonner";
@@ -106,6 +107,7 @@ const ProductDetailPage = () => {
         image: product.images[0] || "",
         category: product.category?.name,
         selectedModel: selectedModelName || undefined,
+        hasLifetimeWarranty: isWarrantyEligible({ flag: product.has_lifetime_warranty, category: product.category?.name, name: product.name }),
       });
     }
   };

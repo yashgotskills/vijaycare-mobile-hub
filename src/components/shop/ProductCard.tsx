@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Magnetic from "@/components/motion/Magnetic";
 import { useCart } from "@/contexts/CartContext";
+import { isWarrantyEligible } from "@/lib/warranty";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useNavigate } from "react-router-dom";
 import type { Product } from "@/types/product";
@@ -32,6 +33,7 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
       originalPrice: product.original_price || product.price,
       image: product.images[0] || "",
       category: product.category?.name,
+      hasLifetimeWarranty: isWarrantyEligible({ flag: product.has_lifetime_warranty, category: product.category?.name, name: product.name }),
     });
   };
 
