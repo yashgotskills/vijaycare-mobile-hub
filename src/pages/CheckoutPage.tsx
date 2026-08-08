@@ -19,6 +19,9 @@ import Footer from "@/components/Footer";
 import CouponInput from "@/components/shop/CouponInput";
 import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
+import { isWarrantyEligible, WARRANTY_SUMMARY } from "@/lib/warranty";
+import { ShieldCheck } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface DeliveryAddress {
   fullName: string;
@@ -189,6 +192,7 @@ const CheckoutPage = () => {
         quantity: item.quantity,
         image: item.image,
         selectedModel: item.selectedModel || null,
+        hasLifetimeWarranty: isWarrantyEligible({ flag: item.hasLifetimeWarranty, category: item.category, name: item.name }),
       }));
 
       const { data: orderData, error: orderError } = await supabase.rpc("create_order" as any, {
@@ -521,6 +525,11 @@ const CheckoutPage = () => {
                             <p className="text-xs text-primary font-medium">Model: {item.selectedModel}</p>
                           )}
                           <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+                          {isWarrantyEligible({ flag: item.hasLifetimeWarranty, category: item.category, name: item.name }) && (
+                            <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+                              <ShieldCheck className="h-3 w-3" /> Lifetime warranty
+                            </span>
+                          )}
                         </div>
                         <span className="text-sm font-medium text-foreground">
                           ₹{(item.price * item.quantity).toLocaleString()}
@@ -528,6 +537,18 @@ const CheckoutPage = () => {
                       </div>
                     ))}
                   </div>
+
+                  {items.some((i) => isWarrantyEligible({ flag: i.hasLifetimeWarranty, category: i.category, name: i.name })) && (
+                    <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
+                      <p className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                        <ShieldCheck className="h-4 w-4 text-primary" /> Lifetime warranty included
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">{WARRANTY_SUMMARY}</p>
+                      <Link to="/warranty" className="mt-1 inline-block text-xs font-medium text-primary underline-offset-2 hover:underline">
+                        View warranty policy & raise a claim
+                      </Link>
+                    </div>
+                  )}
 
                   <Separator />
 

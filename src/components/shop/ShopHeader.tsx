@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ShoppingCart, User, Heart, Menu, X, LogOut, Wrench, Shield } from "lucide-react";
+import { ShoppingCart, User, Heart, Menu, X, LogOut, Wrench, Shield, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
@@ -134,6 +134,17 @@ const ShopHeader = () => {
               )}
             </Button>
 
+            {/* Warranty */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/warranty")}
+              title="Lifetime Warranty"
+              aria-label="Lifetime Warranty"
+            >
+              <ShieldCheck className="h-5 w-5" />
+            </Button>
+
             {/* Repair (visible on mobile, placed before cart) */}
             <Button
               variant="ghost"
@@ -231,6 +242,14 @@ const ShopHeader = () => {
               >
                 <Heart className="h-5 w-5 mr-2" />
                 Wishlist {wishlistItems > 0 && `(${wishlistItems})`}
+              </Button>
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start"
+                onClick={() => { navigate("/warranty"); setMobileMenuOpen(false); }}
+              >
+                <ShieldCheck className="h-5 w-5 mr-2" />
+                Warranty
               </Button>
               <Button 
                 variant="ghost" 

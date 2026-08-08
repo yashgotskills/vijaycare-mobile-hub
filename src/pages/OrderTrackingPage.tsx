@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   ArrowLeft, Package, Truck, CheckCircle2, Clock, 
-  MapPin, Phone, Calendar, Box
+  MapPin, Phone, Calendar, Box, ShieldCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import ShopHeader from "@/components/shop/ShopHeader";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
+import { isWarrantyEligible, WARRANTY_SUMMARY } from "@/lib/warranty";
 
 interface Order {
   id: string;
@@ -270,6 +272,11 @@ const OrderTrackingPage = () => {
                           <p className="text-xs text-muted-foreground">
                             Qty: {item.quantity} × ₹{item.price?.toLocaleString()}
                           </p>
+                          {isWarrantyEligible({ flag: item.hasLifetimeWarranty, category: item.category, name: item.name }) && (
+                            <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+                              <ShieldCheck className="h-3 w-3" /> Lifetime warranty
+                            </span>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -279,6 +286,17 @@ const OrderTrackingPage = () => {
                         <span className="text-primary">₹{order.total_amount?.toLocaleString()}</span>
                       </div>
                     </div>
+                    {order.items?.some((i: any) => isWarrantyEligible({ flag: i.hasLifetimeWarranty, category: i.category, name: i.name })) && (
+                      <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
+                        <p className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                          <ShieldCheck className="h-4 w-4 text-primary" /> Lifetime warranty included
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">{WARRANTY_SUMMARY}</p>
+                        <Link to="/warranty" className="mt-1 inline-block text-xs font-medium text-primary underline-offset-2 hover:underline">
+                          Raise a warranty claim
+                        </Link>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
