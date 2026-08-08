@@ -102,6 +102,14 @@ const WarrantyPage = () => {
       });
       if (error) throw error;
       const claim = data as any;
+      supabase.functions.invoke("send-push-notification", {
+        body: {
+          user_phone: form.phone.replace(/\D/g, "").slice(-10),
+          title: "Warranty claim received",
+          body: `Claim ${claim.claim_number} for ${claim.product_name} is received. We'll update you as it's reviewed.`,
+          data: { type: "warranty_claim", claim_number: claim.claim_number },
+        },
+      }).catch(console.error);
       toast.success(`Claim submitted — reference ${claim.claim_number}`, {
         description: "Our team will review it and contact you shortly.",
         duration: 8000,
