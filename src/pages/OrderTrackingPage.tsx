@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   ArrowLeft, Package, Truck, CheckCircle2, Clock, 
-  MapPin, Phone, Calendar, Box, ShieldCheck
+  MapPin, Phone, Calendar, Box, ShieldCheck, Download
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +13,7 @@ import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { isWarrantyEligible, WARRANTY_SUMMARY } from "@/lib/warranty";
+import { downloadInvoicePdf } from "@/lib/invoice";
 
 interface Order {
   id: string;
@@ -286,6 +287,14 @@ const OrderTrackingPage = () => {
                         <span className="text-primary">₹{order.total_amount?.toLocaleString()}</span>
                       </div>
                     </div>
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => downloadInvoicePdf(order as any)}
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Download Invoice (PDF)
+                    </Button>
                     {order.items?.some((i: any) => isWarrantyEligible({ flag: i.hasLifetimeWarranty, category: i.category, name: i.name })) && (
                       <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
                         <p className="flex items-center gap-1.5 text-sm font-medium text-foreground">

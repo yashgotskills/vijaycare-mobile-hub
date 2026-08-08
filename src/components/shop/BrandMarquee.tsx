@@ -61,6 +61,7 @@ const BrandMarquee = () => {
   const dragDistanceRef = useRef(0);
   const mouseStartXRef = useRef(0);
   const scrollStartRef = useRef(0);
+  const posRef = useRef(0);
 
   // Double brands for seamless loop (only 2 sets needed)
   const allBrands = [...brands, ...brands];
@@ -71,18 +72,25 @@ const BrandMarquee = () => {
 
     const scrollContainer = scrollRef.current;
     let animationId: number;
-    const scrollSpeed = 0.5;
+    let lastTime = 0;
+    const pixelsPerSecond = 36; // time-based so the speed is frame-rate independent
 
-    const animate = () => {
+    const animate = (time: number) => {
+      const delta = lastTime ? Math.min(time - lastTime, 100) : 0;
+      lastTime = time;
+
       // Only auto-scroll if not paused and not being touched/dragged
       if (scrollContainer && !isPaused && !isTouchingRef.current && !isDragging) {
-        scrollContainer.scrollLeft += scrollSpeed;
-        
-        // Reset scroll position for infinite loop
         const singleSetWidth = scrollContainer.scrollWidth / 2;
-        if (scrollContainer.scrollLeft >= singleSetWidth) {
-          scrollContainer.scrollLeft = scrollContainer.scrollLeft - singleSetWidth;
+        // Keep a fractional accumulator so sub-pixel speeds are not rounded away
+        posRef.current += (pixelsPerSecond * delta) / 1000;
+        if (singleSetWidth > 0 && posRef.current >= singleSetWidth) {
+          posRef.current -= singleSetWidth;
         }
+        scrollContainer.scrollLeft = posRef.current;
+      } else if (scrollContainer) {
+        // Stay in sync when the user drags or scrolls manually
+        posRef.current = scrollContainer.scrollLeft;
       }
       animationId = requestAnimationFrame(animate);
     };
@@ -159,8 +167,6 @@ const BrandMarquee = () => {
       viewport={{ once: true, margin: "-80px" }}
       transition={reduceMotion ? undefined : { duration: 0.65, ease: "easeOut" }}
       className="bg-card/40 backdrop-blur-md py-10 md:py-12 border-y border-border/40 relative"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
     >
       <div className="container mx-auto px-4 mb-5 flex items-end justify-between">
         <div>
@@ -186,9 +192,10 @@ const BrandMarquee = () => {
         ref={scrollRef}
         className="flex gap-4 overflow-x-auto scrollbar-hide px-12 touch-pan-x cursor-grab active:cursor-grabbing"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+        onMouseEnter={handleMouseEnter}
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
         onMouseMove={handleMouseMove}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
